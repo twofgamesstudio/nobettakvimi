@@ -4,617 +4,794 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acil Servis Nöbet Planlama</title>
-    
-    <!-- React & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- Babel -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- html2canvas -->
+    <!-- HTML2Canvas kütüphanesi -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
+    <!-- İkon seti -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
     <style>
-        @media print {
-            @page { size: landscape; margin: 5mm; }
-            .no-print { display: none !important; }
-            body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .overflow-x-auto { overflow: visible !important; }
-            table { width: 100%; font-size: 9px !important; }
-            th, td { border: 1px solid #000 !important; padding: 2px !important; color: black !important; }
-            .bg-blue-200 { background-color: #bfdbfe !important; }
-            .bg-orange-200 { background-color: #fed7aa !important; }
-            .bg-green-200 { background-color: #bbf7d0 !important; }
-            .bg-red-100 { background-color: #fee2e2 !important; }
-            .bg-yellow-50 { background-color: #fefce8 !important; }
-            .print-hidden { display: none; }
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #64748b;
+            --danger: #ef4444;
+            --success: #16a34a;
+            --bg-light: #f1f5f9;
+            --border: #cbd5e1;
         }
-        .sticky-col { position: sticky; left: 0; z-index: 20; background-color: white; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #999; }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-light);
+            color: #334155;
+        }
+
+        /* --- Header ve Kontroller --- */
+        header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        h1 { margin: 0; font-size: 1.5rem; color: var(--primary-dark); font-weight: 700; }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        select, input[type="month"] {
+            padding: 0.6rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        select:focus, input:focus { border-color: var(--primary); }
+
+        button {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: var(--primary-dark); }
+        .btn-secondary { background-color: white; border: 1px solid var(--border); color: var(--secondary); }
+        .btn-secondary:hover { background-color: #f8fafc; border-color: #94a3b8; }
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-success:hover { background-color: #15803d; }
+        .btn-danger { background-color: var(--danger); color: white; }
+
+        /* --- Ana Alan --- */
+        main {
+            padding: 2rem;
+            max-width: 100%;
+            overflow-x: auto; /* Ekranda taşmayı engellemek için kaydırma çubuğu */
+        }
+
+        /* --- Tablo Tasarımı --- */
+        .schedule-container {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            display: inline-block;
+            min-width: 100%;
+        }
+
+        table {
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            width: 100%;
+            white-space: nowrap;
+        }
+
+        th, td {
+            border: 1px solid #94a3b8;
+            padding: 8px 4px;
+            text-align: center;
+            vertical-align: middle;
+            color: #0f172a;
+        }
+
+        th {
+            font-weight: 700;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        /* Özel Sütunlar ve Renkler */
+        .col-date { width: 60px; background: #e2e8f0; font-weight: 800; color: #1e293b; }
+        
+        /* Renk Paleti - Canlı ve Okunaklı */
+        .area-header-yellow { background-color: #fef08a !important; color: #854d0e; }
+        .area-header-female { background-color: #fbcfe8 !important; color: #9d174d; }
+        .area-header-male { background-color: #bfdbfe !important; color: #1e40af; }
+        .area-header-triage { background-color: #fed7aa !important; color: #9a3412; }
+        .area-header-green { background-color: #bbf7d0 !important; color: #166534; }
+        .area-header-short { background-color: #ddd6fe !important; color: #5b21b6; }
+
+        .weekend { background-color: #f8fafc; }
+        .sunday { background-color: #fff1f2; } /* Pazar günleri hafif kırmızımsı */
+        
+        .empty-slot { background-color: #ef4444; color: white; font-weight: bold; }
+        .filled-slot { font-weight: 500; }
+
+        /* --- Modal (Personel Ekleme) --- */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 100;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 50px;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            width: 90%;
+            max-width: 900px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .staff-list-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 0.75rem;
+            overflow-y: auto;
+            padding: 5px;
+            flex: 1;
+        }
+
+        .staff-card {
+            border: 1px solid var(--border);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .staff-card:hover { transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-color: var(--primary); }
+
+        .staff-info h4 { margin: 0 0 4px 0; font-size: 0.9rem; color: #334155; }
+        .staff-info .badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        .badge.group-A { background: #dbeafe; color: #1e40af; }
+        .badge.group-B { background: #fce7f3; color: #9d174d; }
+
+        .leave-manager {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 1px dashed var(--border);
+            margin-top: 1rem;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            background: #e2e8f0;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            margin: 2px;
+            color: #475569;
+        }
+        .chip i { margin-left: 6px; cursor: pointer; color: #94a3b8; }
+        .chip i:hover { color: #ef4444; }
+
+        /* --- Loading Animasyonu --- */
+        #loading {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95);
+            z-index: 200;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
-    <div id="root">
-        <div style="height: 100vh; display: flex; justify-content: center; align-items: center; font-family: sans-serif; color: #666;">
-            Uygulama Yükleniyor...
+<body>
+
+<header>
+    <div style="display:flex; align-items:center; gap:1rem;">
+        <div style="background:var(--primary); width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; color:white;">
+            <i class="fas fa-hospital-user fa-lg"></i>
+        </div>
+        <div>
+            <h1>Acil Nöbet</h1>
+            <small style="color:var(--secondary); font-weight:500;">Otomatik Planlama Sistemi v2.0</small>
         </div>
     </div>
+    
+    <div class="controls">
+        <input type="month" id="targetDate" onchange="updateTableHeaders()">
+        <button class="btn-secondary" onclick="openStaffModal()"><i class="fas fa-users-cog"></i> Personel</button>
+        <button class="btn-primary" onclick="generateSchedule()"><i class="fas fa-bolt"></i> Listeyi Oluştur</button>
+        <button class="btn-success" onclick="downloadImage()"><i class="fas fa-file-download"></i> JPG İndir (HQ)</button>
+    </div>
+</header>
 
-    <script type="text/babel">
-        // --- GÜVENLİ ICON SETİ (Çökme Riskini Önler) ---
-        const IconBase = ({ children, size = 24, className = "" }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-                {children}
-            </svg>
-        );
+<main>
+    <!-- Görüntülenecek Alan -->
+    <div id="displayWrapper">
+        <div class="schedule-container" id="scheduleContainer">
+            <table id="scheduleTable">
+                <thead>
+                    <tr>
+                        <th class="col-date" rowspan="2">GÜN</th>
+                        <th class="area-header-yellow" colspan="4">SARI ALAN (24s)</th>
+                        <th class="area-header-female" colspan="3">KADIN GÖZLEM (24s)</th>
+                        <th class="area-header-male" colspan="3">ERKEK GÖZLEM (24s)</th>
+                        <th class="area-header-triage" colspan="2">TRİAJ (24s)</th>
+                        <th class="area-header-green" colspan="2">YEŞİL ALAN (24s)</th>
+                        <th class="area-header-short" colspan="2">KISA TRİAJ</th>
+                        <th class="area-header-short" colspan="2">KISA YEŞİL</th>
+                    </tr>
+                    <tr>
+                        <th class="area-header-yellow">1</th> <th class="area-header-yellow">2</th> <th class="area-header-yellow">3</th> <th class="area-header-yellow">4</th>
+                        <th class="area-header-female">1</th> <th class="area-header-female">2</th> <th class="area-header-female">3</th>
+                        <th class="area-header-male">1</th> <th class="area-header-male">2</th> <th class="area-header-male">3</th>
+                        <th class="area-header-triage">1</th> <th class="area-header-triage">2</th>
+                        <th class="area-header-green">1</th> <th class="area-header-green">2</th>
+                        <th class="area-header-short">8 Saat</th> <th class="area-header-short">16 Saat</th>
+                        <th class="area-header-short">8 Saat</th> <th class="area-header-short">16 Saat</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Javascript ile doldurulacak -->
+                </tbody>
+            </table>
+        </div>
+        <div style="padding: 15px; font-size: 0.85rem; color: #64748b; background:white; border:1px solid var(--border); border-top:none; border-radius: 0 0 0.5rem 0.5rem;">
+            <i class="fas fa-info-circle"></i> <strong>Bilgilendirme:</strong> Grup B personeli öncelikli olarak kısa nöbetlere (8/16s) yerleştirilir. 
+            İzinli personele nöbet yazılmaz. 24 saat nöbet tutan personele ertesi gün dinlenme verilir.
+        </div>
+    </div>
+</main>
 
-        const Icons = {
-            Calendar: (p) => <IconBase {...p}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></IconBase>,
-            Users: (p) => <IconBase {...p}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></IconBase>,
-            Printer: (p) => <IconBase {...p}><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></IconBase>,
-            Trash2: (p) => <IconBase {...p}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></IconBase>,
-            Plus: (p) => <IconBase {...p}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></IconBase>,
-            FileSpreadsheet: (p) => <IconBase {...p}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M8 13h2"></path><path d="M8 17h2"></path><path d="M14 13h2"></path><path d="M14 17h2"></path></IconBase>,
-            ChevronLeft: (p) => <IconBase {...p}><polyline points="15 18 9 12 15 6"></polyline></IconBase>,
-            ChevronRight: (p) => <IconBase {...p}><polyline points="9 18 15 12 9 6"></polyline></IconBase>,
-            X: (p) => <IconBase {...p}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></IconBase>,
-            Sparkles: (p) => <IconBase {...p}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></IconBase>,
-            Check: (p) => <IconBase {...p}><polyline points="20 6 9 17 4 12"></polyline></IconBase>,
-            AlertTriangle: (p) => <IconBase {...p}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></IconBase>,
-            Menu: (p) => <IconBase {...p}><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="20" y2="18"></line></IconBase>,
-            Image: (p) => <IconBase {...p}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></IconBase>,
-            FileText: (p) => <IconBase {...p}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></IconBase>,
-            Info: (p) => <IconBase {...p}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></IconBase>,
-            Edit2: (p) => <IconBase {...p}><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></IconBase>,
-            Save: (p) => <IconBase {...p}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></IconBase>
-        };
+<!-- Personel Yönetimi Modal -->
+<div id="staffModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 style="margin:0; color:var(--primary-dark);">Personel Yönetimi</h3>
+            <button onclick="closeStaffModal()" style="background:transparent; border:none; font-size:1.5rem; color:#64748b;">&times;</button>
+        </div>
+        
+        <div style="display:flex; gap:1rem; margin-bottom:1rem; padding-bottom:1rem; border-bottom:1px solid #eee;">
+            <input type="text" id="newStaffName" placeholder="Ad Soyad Giriniz" style="flex:2">
+            <select id="newStaffGroup" style="flex:1">
+                <option value="A">Grup A (Tüm Nöbetler)</option>
+                <option value="B">Grup B (Sadece 8/16s)</option>
+            </select>
+            <button class="btn-primary" onclick="addStaff()">Ekle</button>
+        </div>
 
-        const { useState, useEffect, useRef } = React;
+        <!-- Personel Düzenleme Alanı -->
+        <div id="editStaffArea" style="display:none; margin-bottom:1rem;">
+            <div style="background:#eff6ff; padding:1rem; border-radius:0.5rem; border:1px solid #bfdbfe;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h4 id="editingStaffName" style="margin:0; color:var(--primary-dark); font-size:1.1rem;"></h4>
+                    <button onclick="deleteStaff()" class="btn-danger" style="padding:0.4rem 0.8rem; font-size:0.8rem;">Personeli Sil</button>
+                </div>
+                
+                <div class="leave-manager">
+                    <label style="display:block; margin-bottom:5px; font-weight:600; color:#475569;">İzin / Boş Gün Ekle:</label>
+                    <div style="display:flex; gap:0.5rem; margin-bottom:1rem;">
+                        <input type="date" id="leaveDateInput">
+                        <button class="btn-secondary" onclick="addLeaveToStaff()">Ekle</button>
+                    </div>
+                    <div id="leaveChips" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
+                </div>
+                <div style="text-align:right; margin-top:10px;">
+                     <button class="btn-secondary" onclick="closeEditArea()">Düzenlemeyi Bitir</button>
+                </div>
+            </div>
+        </div>
 
-        // --- BAŞLANGIÇ VERİLERİ ---
-        const INITIAL_STAFF = [
-            { id: 1, name: "ABDURRAHMAN ŞAHİN", group: "A" }, { id: 2, name: "AHMET ALTINTAŞ", group: "A" },
-            { id: 3, name: "AHMET KAYA", group: "A" }, { id: 4, name: "ALEYNA NUR ÇELİK", group: "A" },
-            { id: 5, name: "ALİ İHSAN ÖZDEMİR", group: "A" }, { id: 6, name: "ARZU BOZBOĞA", group: "A" },
-            { id: 7, name: "ASENA ALBAYRAK", group: "A" }, { id: 8, name: "AYŞE ÇETİN", group: "A" },
-            { id: 9, name: "AYŞE SAN", group: "A" }, { id: 10, name: "BURAKHAN KARAKAN", group: "A" },
-            { id: 11, name: "BÜŞRA DEŞAT", group: "A" }, { id: 12, name: "BÜŞRA KESKİN", group: "A" },
-            { id: 13, name: "CANER KARAMAN", group: "A" }, { id: 14, name: "CEREN CAN EMRE", group: "A" },
-            { id: 15, name: "CUMALİ ORUÇ", group: "A" }, { id: 16, name: "DÖNDÜ KARACA KOÇ", group: "A" },
-            { id: 17, name: "EBRU TEKTAŞ", group: "A" }, { id: 18, name: "EBUBEKİR BOZKURT", group: "A" },
-            { id: 19, name: "ERDİ ŞEN", group: "A" }, { id: 20, name: "ESRA KESKİN", group: "A" },
-            { id: 21, name: "FATİH KÖYLÜ", group: "A" }, { id: 22, name: "FUAT ÇOBAN", group: "A" },
-            { id: 23, name: "GİZEM TÜRKER", group: "A" }, { id: 24, name: "GONCA METİN", group: "A" },
-            { id: 25, name: "GÖKHAN AKGÜL", group: "A" }, { id: 26, name: "HACER AKYÜREK", group: "A" },
-            { id: 27, name: "HATİCE EREN", group: "A" }, { id: 28, name: "HİLAL KORUYAN", group: "A" },
-            { id: 29, name: "İFAKET DUMLU", group: "A" }, { id: 30, name: "KADİR KAYA", group: "A" },
-            { id: 31, name: "KADRIYE ÖZKAN", group: "A" }, { id: 32, name: "MERVE NUR DEMİRTAŞ", group: "A" },
-            { id: 33, name: "MUHAMMED TATLI", group: "A" }, { id: 34, name: "OKTAY KARAHAN", group: "A" },
-            { id: 35, name: "ÖZGE KUŞ", group: "A" }, { id: 36, name: "RABİA KAHRİMAN", group: "A" },
-            { id: 37, name: "RABİA YAVAŞ KAYA", group: "A" }, { id: 38, name: "RAMAZAN BİLGİN", group: "A" },
-            { id: 39, name: "RECAİ KARAHAN", group: "A" }, { id: 40, name: "REMZİYE YALMAN", group: "A" },
-            { id: 41, name: "REMZİYE YATBAZ", group: "A" }, { id: 42, name: "SELMA SERTELLİ", group: "A" },
-            { id: 43, name: "SEMİHA ADIYAMAN", group: "A" }, { id: 44, name: "SERHAT DURAK", group: "A" },
-            { id: 45, name: "ŞAFAK TAŞTAN", group: "A" }, { id: 46, name: "ŞAZİMET AYTEKİN", group: "A" },
-            { id: 47, name: "ERDİ GÜREL", group: "A" }, { id: 48, name: "TUĞBA DENİZ GÜREL", group: "A" },
-            { id: 49, name: "VURAL GÜLEÇ", group: "A" }, { id: 50, name: "YARENGÜZEL AŞÇI", group: "A" },
-            { id: 51, name: "YASEMİN ERDEM", group: "A" }, { id: 52, name: "YASİN KİRAZ", group: "A" },
-            { id: 53, name: "YUNUS EMRE YILDIZ", group: "A" }, { id: 54, name: "ZEHRA TEKBIÇAK", group: "A" },
-            { id: 64, name: "YENİ PERSONEL EKLE", group: "A" }, 
-            // GRUP B
-            { id: 55, name: "PINAR İLÇİN", group: "B" }, { id: 56, name: "ÖZLEM BOZKURT", group: "B" },
-            { id: 57, name: "NURCAN ÇİFTÇİ", group: "B" }, { id: 58, name: "MERVE POYRAZ", group: "B" },
-            { id: 59, name: "CANSU ÖZEN", group: "B" }, { id: 60, name: "BURCU KIYAK", group: "B" },
-            { id: 61, name: "FATMA KIRTAŞ", group: "B" }, { id: 62, name: "HÜLYA ŞAHİN", group: "B" },
-            { id: 63, name: "SÜMEYYE KARAKAYA", group: "B" },
-        ];
+        <div class="staff-list-grid" id="staffListGrid">
+            <!-- JS ile dolacak -->
+        </div>
+        <div style="margin-top:1rem; text-align:right;">
+             <button class="btn-secondary" onclick="if(confirm('Tüm personel listesi sıfırlanıp varsayılan listeye dönülecek. Onaylıyor musunuz?')) resetStaffData();" style="font-size:0.8rem; color:#94a3b8;">Varsayılan Listeyi Geri Yükle</button>
+        </div>
+    </div>
+</div>
 
-        const DUTY_SLOTS = [
-            { id: 'sari_1', label: 'Sarı 1', type: '24' }, { id: 'sari_2', label: 'Sarı 2', type: '24' },
-            { id: 'sari_3', label: 'Sarı 3', type: '24' }, { id: 'sari_4', label: 'Sarı 4', type: '24' },
-            { id: 'kadin_1', label: 'Kadın 1', type: '24' }, { id: 'kadin_2', label: 'Kadın 2', type: '24' }, { id: 'kadin_3', label: 'Kadın 3', type: '24' },
-            { id: 'erkek_1', label: 'Erkek 1', type: '24' }, { id: 'erkek_2', label: 'Erkek 2', type: '24' }, { id: 'erkek_3', label: 'Erkek 3', type: '24' },
-            { id: 'triaj_24_1', label: 'Triaj 24-1', type: '24' }, { id: 'triaj_24_2', label: 'Triaj 24-2', type: '24' },
-            { id: 'yesil_24_1', label: 'Yeşil 24-1', type: '24' }, { id: 'yesil_24_2', label: 'Yeşil 24-2', type: '24' },
-            { id: 'triaj_16', label: 'Triaj 16', type: '16' }, { id: 'yesil_16', label: 'Yeşil 16', type: '16' },
-            { id: 'triaj_8', label: 'Triaj 8', type: '8' }, { id: 'yesil_8', label: 'Yeşil 8', type: '8' },
-        ];
+<div id="loading">
+    <div class="spinner"></div>
+    <h3 id="loadingTitle" style="margin-top:20px; color:#333;">İşlem Yapılıyor...</h3>
+    <p id="loadingText" style="color:#666;">Lütfen bekleyiniz.</p>
+</div>
 
-        const MONTHS = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+<script>
+    // --- Varsayılan Veriler ---
+    const defaultGroupA = [
+        "ABDURRAHMAN ŞAHİN", "AHMET ALTINTAŞ", "AHMET KAYA", "ALEYNA NUR ÇELİK", "ALİ İHSAN ÖZDEMİR",
+        "ARZU BOZBOĞA", "ASENA ALBAYRAK", "AYŞE ÇETİN", "AYŞE SAN", "BURAKHAN KARAKAN", "BÜŞRA DEŞAT",
+        "BÜŞRA KESKİN", "CANER KARAMAN", "CEREN CAN EMRE", "CUMALİ ORUÇ", "DÖNDÜ KARACA KOÇ", "EBRU TEKTAŞ",
+        "EBUBEKİR BOZKURT", "ERDİ ŞEN", "ESRA KESKİN", "FATİH KÖYLÜ", "FUAT ÇOBAN", "GİZEM TÜRKER",
+        "GONCA METİN", "GÖKHAN AKGÜL", "HACER AKYÜREK", "HATİCE EREN", "HİLAL KORUYAN", "İFAKET DUMLU",
+        "KADİR KAYA", "KADRIYE ÖZKAN", "MERVE NUR DEMİRTAŞ", "MUHAMMED TATLI", "OKTAY KARAHAN", "ÖZGE KUŞ",
+        "RABİA KAHRİMAN", "RABİA YAVAŞ KAYA", "RAMAZAN BİLGİN", "RECAİ KARAHAN", "REMZİYE YALMAN",
+        "REMZİYE YATBAZ", "SELMA SERTELLİ", "SEMİHA ADIYAMAN", "SERHAT DURAK", "ŞAFAK TAŞTAN",
+        "ŞAZİMET AYTEKİN", "ERDİ GÜREL", "TUĞBA DENİZ GÜREL", "VURAL GÜLEÇ", "YARENGÜZEL AŞÇI",
+        "YASEMİN ERDEM", "YASİN KİRAZ", "YUNUS EMRE YILDIZ", "ZEHRA TEKBIÇAK"
+    ];
 
-        // --- PERSONEL YÖNETİMİ BİLEŞENİ ---
-        const StaffManager = ({ staffList, setStaffList, showNotification }) => {
-            const [newName, setNewName] = useState("");
-            const [newGroup, setNewGroup] = useState("A");
-            const [deleteConfirmId, setDeleteConfirmId] = useState(null);
-            const [editingId, setEditingId] = useState(null);
-            const [editName, setEditName] = useState("");
-            const [editGroup, setEditGroup] = useState("");
+    const defaultGroupB = [
+        "PINAR İLÇİN", "ÖZLEM BOZKURT", "NURCAN ÇİFTÇİ", "MERVE POYRAZ", "CANSU ÖZEN",
+        "BURCU KIYAK", "FATMA KIRTAŞ", "HÜLYA ŞAHİN", "SÜMEYYE KARAKAYA"
+    ];
 
-            const addStaff = () => {
-                if(!newName) return;
-                const maxId = staffList.length > 0 ? Math.max(...staffList.map(s => s.id)) : 0;
-                setStaffList([...staffList, { id: maxId + 1, name: newName.toUpperCase(), group: newGroup }]);
-                setNewName("");
-                showNotification("Personel eklendi.", "success");
+    // --- Durum Yönetimi ---
+    let staffList = [];
+    let currentSchedule = {};
+    let editingStaffId = null;
+
+    // --- Başlangıç ---
+    window.onload = function() {
+        const now = new Date();
+        const monthStr = now.toISOString().slice(0, 7);
+        document.getElementById('targetDate').value = monthStr;
+
+        loadStaff();
+        updateTableHeaders();
+    };
+
+    // --- Veri Fonksiyonları ---
+    function loadStaff() {
+        const stored = localStorage.getItem('hospitalStaffList');
+        if (stored) {
+            staffList = JSON.parse(stored);
+        } else {
+            resetStaffData();
+        }
+    }
+
+    function saveStaff() {
+        localStorage.setItem('hospitalStaffList', JSON.stringify(staffList));
+        renderStaffList();
+    }
+
+    function resetStaffData() {
+        staffList = [];
+        let idCounter = 1;
+        defaultGroupA.forEach(name => {
+            staffList.push({ id: idCounter++, name: name, group: 'A', leaves: [] });
+        });
+        defaultGroupB.forEach(name => {
+            staffList.push({ id: idCounter++, name: name, group: 'B', leaves: [] });
+        });
+        saveStaff();
+    }
+
+    // --- Arayüz Fonksiyonları ---
+    function openStaffModal() {
+        document.getElementById('staffModal').style.display = 'flex';
+        renderStaffList();
+    }
+
+    function closeStaffModal() {
+        document.getElementById('staffModal').style.display = 'none';
+        document.getElementById('editStaffArea').style.display = 'none';
+    }
+
+    function renderStaffList() {
+        const container = document.getElementById('staffListGrid');
+        container.innerHTML = '';
+        
+        staffList.sort((a,b) => a.name.localeCompare(b.name)).forEach(staff => {
+            const div = document.createElement('div');
+            div.className = 'staff-card';
+            div.style.cursor = 'pointer';
+            div.onclick = () => editStaff(staff.id);
+            
+            const leaveCount = staff.leaves.length;
+            const leaveHtml = leaveCount > 0 
+                ? `<div style="margin-top:5px; font-size:0.75rem; color:#ef4444;"><i class="fas fa-calendar-times"></i> ${leaveCount} İzin</div>` 
+                : '';
+
+            div.innerHTML = `
+                <div class="staff-info">
+                    <h4>${staff.name}</h4>
+                    <span class="badge group-${staff.group}">Grup ${staff.group}</span>
+                    ${leaveHtml}
+                </div>
+                <i class="fas fa-pen" style="color:#cbd5e1"></i>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function addStaff() {
+        const nameInput = document.getElementById('newStaffName');
+        const name = nameInput.value.trim().toUpperCase();
+        const group = document.getElementById('newStaffGroup').value;
+        if (!name) return alert('Lütfen isim giriniz.');
+
+        const newId = staffList.length > 0 ? Math.max(...staffList.map(s => s.id)) + 1 : 1;
+        staffList.push({ id: newId, name: name, group: group, leaves: [] });
+        nameInput.value = '';
+        saveStaff();
+    }
+
+    function editStaff(id) {
+        editingStaffId = id;
+        const staff = staffList.find(s => s.id === id);
+        if (!staff) return;
+
+        document.getElementById('editStaffArea').style.display = 'block';
+        document.getElementById('editingStaffName').innerText = staff.name;
+        renderLeaves(staff);
+    }
+
+    function closeEditArea() {
+        editingStaffId = null;
+        document.getElementById('editStaffArea').style.display = 'none';
+    }
+
+    function deleteStaff() {
+        if (!editingStaffId) return;
+        if (confirm('Bu personeli listeden silmek istediğinize emin misiniz?')) {
+            staffList = staffList.filter(s => s.id !== editingStaffId);
+            saveStaff();
+            closeEditArea();
+        }
+    }
+
+    function addLeaveToStaff() {
+        if (!editingStaffId) return;
+        const dateVal = document.getElementById('leaveDateInput').value;
+        if (!dateVal) return;
+
+        const staff = staffList.find(s => s.id === editingStaffId);
+        if (!staff.leaves.includes(dateVal)) {
+            staff.leaves.push(dateVal);
+            staff.leaves.sort();
+            saveStaff();
+            renderLeaves(staff);
+        }
+        document.getElementById('leaveDateInput').value = '';
+    }
+
+    function removeLeave(dateStr) {
+        if (!editingStaffId) return;
+        const staff = staffList.find(s => s.id === editingStaffId);
+        staff.leaves = staff.leaves.filter(d => d !== dateStr);
+        saveStaff();
+        renderLeaves(staff);
+    }
+
+    function renderLeaves(staff) {
+        const container = document.getElementById('leaveChips');
+        container.innerHTML = '';
+        if(staff.leaves.length === 0) {
+            container.innerHTML = '<span style="font-size:0.8rem; color:#94a3b8; font-style:italic;">Kayıtlı izin yok.</span>';
+            return;
+        }
+        staff.leaves.forEach(date => {
+            const chip = document.createElement('span');
+            chip.className = 'chip';
+            chip.innerHTML = `${date.split('-').reverse().join('.')} <i class="fas fa-times-circle" onclick="event.stopPropagation(); removeLeave('${date}')"></i>`;
+            container.appendChild(chip);
+        });
+    }
+
+    // --- Nöbet Dağıtım Algoritması ---
+    function getDaysInMonth(year, month) {
+        return new Date(year, month, 0).getDate();
+    }
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    async function generateSchedule() {
+        document.getElementById('loadingTitle').innerText = "Nöbetler Dağıtılıyor";
+        document.getElementById('loadingText').innerText = "Algoritma çalışıyor...";
+        document.getElementById('loading').style.display = 'flex';
+        
+        setTimeout(() => {
+            const dateInput = document.getElementById('targetDate').value;
+            const [year, month] = dateInput.split('-').map(Number);
+            const daysInMonth = getDaysInMonth(year, month);
+            
+            // Slot Tanımları
+            const slotsDefinition = [
+                { id: 'y1', name: 'Sarı', type: '24h', group: 'A' },
+                { id: 'y2', name: 'Sarı', type: '24h', group: 'A' },
+                { id: 'y3', name: 'Sarı', type: '24h', group: 'A' },
+                { id: 'y4', name: 'Sarı', type: '24h', group: 'A' },
+                { id: 'f1', name: 'Kadın', type: '24h', group: 'A' },
+                { id: 'f2', name: 'Kadın', type: '24h', group: 'A' },
+                { id: 'f3', name: 'Kadın', type: '24h', group: 'A' },
+                { id: 'm1', name: 'Erkek', type: '24h', group: 'A' },
+                { id: 'm2', name: 'Erkek', type: '24h', group: 'A' },
+                { id: 'm3', name: 'Erkek', type: '24h', group: 'A' },
+                { id: 't1', name: 'Triaj', type: '24h', group: 'A' },
+                { id: 't2', name: 'Triaj', type: '24h', group: 'A' },
+                { id: 'g1', name: 'Yeşil', type: '24h', group: 'A' },
+                { id: 'g2', name: 'Yeşil', type: '24h', group: 'A' },
+                { id: 'st8', name: 'T.Kısa8', type: 'short', group: 'Any' },
+                { id: 'st16', name: 'T.Kısa16', type: 'short', group: 'Any' },
+                { id: 'sg8', name: 'Y.Kısa8', type: 'short', group: 'Any' },
+                { id: 'sg16', name: 'Y.Kısa16', type: 'short', group: 'Any' },
+            ];
+
+            let schedule = {}; 
+            let staffState = {}; 
+            
+            // State Sıfırlama
+            staffList.forEach(s => {
+                staffState[s.id] = { lastShiftDay: -999, shiftCount: 0 };
+            });
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                schedule[day] = {};
+                const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                let assignedToday = new Set();
+
+                // 1. Kısa Nöbetleri Dağıt (Önce Grup B)
+                const shortSlots = slotsDefinition.filter(s => s.type === 'short');
+                let availableGroupB = shuffleArray(staffList.filter(s => s.group === 'B'));
+                let availableGroupA = shuffleArray(staffList.filter(s => s.group === 'A'));
+
+                shortSlots.forEach(slot => {
+                    // Grup B'den bul
+                    let candidate = availableGroupB.find(s => 
+                        !assignedToday.has(s.id) && 
+                        !s.leaves.includes(dateStr) &&
+                        (day - staffState[s.id].lastShiftDay > 0)
+                    );
+
+                    // Yoksa Grup A'dan bul (Dün 24 saat tutmamış olmalı)
+                    if (!candidate) {
+                        candidate = availableGroupA.find(s => 
+                            !assignedToday.has(s.id) && 
+                            !s.leaves.includes(dateStr) &&
+                            (day - staffState[s.id].lastShiftDay >= 1)
+                        );
+                    }
+
+                    if (candidate) {
+                        schedule[day][slot.id] = candidate;
+                        assignedToday.add(candidate.id);
+                        staffState[candidate.id].lastShiftDay = day;
+                        staffState[candidate.id].shiftCount++;
+                    } else {
+                        schedule[day][slot.id] = { name: "---" };
+                    }
+                });
+
+                // 2. 24 Saatlik Nöbetleri Dağıt (Sadece Grup A)
+                const longSlots = slotsDefinition.filter(s => s.type === '24h');
+                
+                // En az nöbet tutanı öne al (Adalet)
+                availableGroupA.sort((a, b) => {
+                    if (staffState[a.id].shiftCount === staffState[b.id].shiftCount) return 0.5 - Math.random();
+                    return staffState[a.id].shiftCount - staffState[b.id].shiftCount;
+                });
+
+                longSlots.forEach(slot => {
+                    const candidate = availableGroupA.find(s => 
+                        !assignedToday.has(s.id) && 
+                        !s.leaves.includes(dateStr) &&
+                        (day - staffState[s.id].lastShiftDay > 1) // En az 1 tam gün boşluk
+                    );
+
+                    if (candidate) {
+                        schedule[day][slot.id] = candidate;
+                        assignedToday.add(candidate.id);
+                        staffState[candidate.id].lastShiftDay = day;
+                        staffState[candidate.id].shiftCount++;
+                    } else {
+                         schedule[day][slot.id] = { name: "BOŞ!" };
+                    }
+                });
             }
 
-            const deleteStaff = (id) => {
-                if (deleteConfirmId === id) {
-                    setStaffList(staffList.filter(s => s.id !== id));
-                    setDeleteConfirmId(null);
-                    showNotification("Personel silindi.", "success");
+            currentSchedule = schedule;
+            renderTable(year, month);
+            document.getElementById('loading').style.display = 'none';
+        }, 100);
+    }
+
+    function renderTable(year, month) {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        const daysInMonth = getDaysInMonth(year, month);
+        const dayNames = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cts"];
+
+        const slotIds = ['y1','y2','y3','y4','f1','f2','f3','m1','m2','m3','t1','t2','g1','g2','st8','st16','sg8','sg16'];
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month - 1, day);
+            const dayName = dayNames[date.getDay()];
+            const row = document.createElement('tr');
+            
+            if (date.getDay() === 0) row.classList.add('sunday'); 
+            else if (date.getDay() === 6) row.classList.add('weekend');
+
+            const dateCell = document.createElement('td');
+            dateCell.className = 'col-date';
+            dateCell.innerHTML = `<div>${day}</div><div style="font-weight:normal; font-size:0.7em; text-transform:uppercase;">${dayName}</div>`;
+            row.appendChild(dateCell);
+
+            slotIds.forEach(id => {
+                const cell = document.createElement('td');
+                const staff = (currentSchedule[day] || {})[id];
+                if (staff) {
+                    cell.innerText = staff.name;
+                    cell.classList.add('filled-slot');
+                    if (staff.name === "BOŞ!") cell.className = 'empty-slot';
                 } else {
-                    setDeleteConfirmId(id);
-                    setTimeout(() => setDeleteConfirmId(null), 3000);
+                    cell.innerText = "-";
+                    cell.style.color = "#ccc";
                 }
-            }
-
-            const startEditing = (staff) => {
-                setEditingId(staff.id);
-                setEditName(staff.name);
-                setEditGroup(staff.group);
-            }
-
-            const saveEditing = () => {
-                setStaffList(staffList.map(s => s.id === editingId ? { ...s, name: editName.toUpperCase(), group: editGroup } : s));
-                setEditingId(null);
-                showNotification("Personel güncellendi.", "success");
-            }
-
-            return (
-                <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-teal-800">
-                        <Icons.Users size={24} /> Personel Yönetimi
-                    </h2>
-                    
-                    <div className="flex flex-col sm:flex-row gap-2 mb-4 bg-gray-50 p-3 rounded">
-                        <input type="text" placeholder="AD SOYAD GİRİNİZ" className="border p-2 rounded flex-1 uppercase w-full outline-none focus:ring-2 focus:ring-teal-500" value={newName} onChange={(e) => setNewName(e.target.value)} />
-                        <select className="border p-2 rounded w-full sm:w-auto outline-none" value={newGroup} onChange={(e) => setNewGroup(e.target.value)}>
-                            <option value="A">Grup A</option>
-                            <option value="B">Grup B</option>
-                        </select>
-                        <button onClick={addStaff} className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 font-bold w-full sm:w-auto flex items-center justify-center gap-1">
-                            <Icons.Plus size={18} /> EKLE
-                        </button>
-                    </div>
-
-                    <div className="max-h-[60vh] overflow-y-auto border rounded">
-                        <table className="w-full text-sm">
-                            <thead className="bg-gray-100 sticky top-0 z-10">
-                                <tr>
-                                    <th className="p-3 text-left">İsim</th>
-                                    <th className="p-3 text-center">Grup</th>
-                                    <th className="p-3 text-right">İşlem</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {staffList.map((staff) => (
-                                    <tr key={staff.id} className="border-t hover:bg-teal-50">
-                                        <td className="p-2">
-                                            {editingId === staff.id ? (
-                                                <input type="text" className="border p-1 rounded w-full uppercase" value={editName} onChange={e=>setEditName(e.target.value)} />
-                                            ) : staff.name}
-                                        </td>
-                                        <td className="p-2 text-center">
-                                            {editingId === staff.id ? (
-                                                <select className="border p-1 rounded" value={editGroup} onChange={e=>setEditGroup(e.target.value)}>
-                                                    <option value="A">A</option><option value="B">B</option>
-                                                </select>
-                                            ) : <span className={`px-2 py-1 rounded text-xs font-bold ${staff.group === 'A' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>{staff.group}</span>}
-                                        </td>
-                                        <td className="p-2 text-right flex justify-end gap-2">
-                                            {editingId === staff.id ? (
-                                                <button onClick={saveEditing} className="text-green-600 hover:bg-green-100 p-1 rounded"><Icons.Save size={16}/></button>
-                                            ) : (
-                                                <button onClick={() => startEditing(staff)} className="text-blue-600 hover:bg-blue-100 p-1 rounded"><Icons.Edit2 size={16}/></button>
-                                            )}
-                                            <button onClick={() => deleteStaff(staff.id)} className={`p-1 rounded text-xs font-bold transition-all flex items-center gap-1 ${deleteConfirmId === staff.id ? 'bg-red-600 text-white px-2' : 'text-red-500 hover:bg-red-100'}`}>
-                                                {deleteConfirmId === staff.id ? 'ONAY' : <Icons.Trash2 size={16}/>}
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            )
+                row.appendChild(cell);
+            });
+            tbody.appendChild(row);
         }
+    }
 
-        // --- ANA UYGULAMA ---
-        function App() {
-            const [currentDate, setCurrentDate] = useState(new Date());
-            const [staffList, setStaffList] = useState(INITIAL_STAFF);
-            const [assignments, setAssignments] = useState({});
-            const [selectedDay, setSelectedDay] = useState(null);
-            const [viewMode, setViewMode] = useState('matrix');
-            const [notification, setNotification] = useState(null);
-            const [showAutoFillConfirm, setShowAutoFillConfirm] = useState(false);
-            const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-            const matrixRef = useRef(null);
+    function updateTableHeaders() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '<tr><td colspan="19" style="padding:40px; text-align:center; color:#64748b; font-size:1.1rem;"><i class="fas fa-magic fa-2x" style="margin-bottom:10px; display:block;"></i>Lütfen "Listeyi Oluştur" butonuna basınız.</td></tr>';
+    }
 
-            const showNotification = (message, type = 'info') => {
-                setNotification({ message, type });
-                setTimeout(() => setNotification(null), 4000);
-            };
+    // --- YENİLENMİŞ JPG İNDİRME FONKSİYONU ---
+    function downloadImage() {
+        document.getElementById('loadingTitle').innerText = "Yüksek Kaliteli Görsel Hazırlanıyor";
+        document.getElementById('loadingText').innerText = "Tablo ne kadar büyük olursa olsun, tamamı eksiksiz alınıyor...";
+        document.getElementById('loading').style.display = 'flex';
 
-            const getDaysInMonth = (date) => {
-                const year = date.getFullYear();
-                const month = date.getMonth();
-                const days = new Date(year, month + 1, 0).getDate();
-                return Array.from({ length: days }, (_, i) => i + 1);
-            };
+        setTimeout(() => {
+            // 1. Orijinal tablo yapısını kopyala
+            const originalContainer = document.querySelector('.schedule-container');
+            if (!originalContainer) return;
 
-            const formatDateKey = (year, month, day) => {
-                return `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-            };
+            // 2. Klon oluştur ve baskı için optimize et
+            const clone = originalContainer.cloneNode(true);
+            
+            // Tarih başlığını ekle
+            const dateVal = document.getElementById('targetDate').value;
+            const headerDiv = document.createElement('div');
+            headerDiv.style.textAlign = 'center';
+            headerDiv.style.padding = '20px';
+            headerDiv.style.background = 'white';
+            headerDiv.style.borderBottom = '2px solid #000';
+            headerDiv.style.marginBottom = '0';
+            headerDiv.innerHTML = `<h2 style="margin:0; font-size:24px; color:#000;">ACİL SERVİS NÖBET LİSTESİ - ${dateVal}</h2>`;
+            
+            // Klon konteyner (Wrapper)
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'absolute';
+            wrapper.style.top = '0';
+            wrapper.style.left = '0';
+            // Ekranın dışına atmak yerine en üstte, görünmez bir katmanda tutalım ama render edilsin
+            wrapper.style.zIndex = '-9999'; 
+            wrapper.style.width = 'fit-content'; // İçeriğe göre genişle
+            wrapper.style.minWidth = '1400px';
+            wrapper.style.background = 'white';
+            wrapper.style.padding = '20px';
+            
+            // Klon Stilleri (Baskı Modu)
+            clone.style.boxShadow = 'none';
+            clone.style.border = '2px solid #000';
+            clone.style.borderRadius = '0';
+            clone.style.overflow = 'visible'; // Scroll olmasın, taşsın
+            clone.style.width = 'auto';
+            clone.style.display = 'table'; // Tam genişlik zorla
 
-            const calculateStats = () => {
-                const stats = {};
-                staffList.forEach(s => stats[s.id] = { cgms: 0, tcs: 0, s16: 0, s8: 0, cts: 0, pzr: 0, hs: 0 });
-                const prefix = formatDateKey(currentDate.getFullYear(), currentDate.getMonth(), 1).substring(0, 7);
+            // Klonun içindeki tüm hücre kenarlıklarını siyah yap (Net baskı için)
+            const allCells = clone.querySelectorAll('th, td');
+            allCells.forEach(cell => {
+                cell.style.borderColor = '#000';
+                cell.style.color = '#000';
+                if(cell.tagName === 'TH') cell.style.background = '#e2e8f0'; // Başlıkları grileştir
+            });
 
-                Object.keys(assignments).forEach(dateKey => {
-                    if (dateKey.startsWith(prefix)) {
-                        const [y, m, d] = dateKey.split('-').map(Number);
-                        const dayOfWeek = new Date(y, m - 1, d).getDay(); 
-                        const dayAssignments = assignments[dateKey];
-                        Object.keys(dayAssignments).forEach(slotId => {
-                            const staffId = dayAssignments[slotId];
-                            const slotDef = DUTY_SLOTS.find(s => s.id === slotId);
-                            if (staffId && stats[staffId] && slotDef) {
-                                const duration = parseInt(slotDef.type);
-                                stats[staffId].cgms += 1;
-                                stats[staffId].tcs += duration;
-                                if (duration === 16) stats[staffId].s16 += 1;
-                                if (duration === 8) stats[staffId].s8 += 1;
-                                if (dayOfWeek === 6) { stats[staffId].cts += 1; stats[staffId].hs += 1; }
-                                if (dayOfWeek === 0) { stats[staffId].pzr += 1; stats[staffId].hs += 1; }
-                            }
-                        });
-                    }
-                });
-                return stats;
-            };
-            const stats = calculateStats();
+            wrapper.appendChild(headerDiv);
+            wrapper.appendChild(clone);
+            document.body.appendChild(wrapper);
 
-            const handleAssignment = (slotId, staffId) => {
-                const dateKey = formatDateKey(currentDate.getFullYear(), currentDate.getMonth(), selectedDay);
-                setAssignments(prev => {
-                    const dayData = prev[dateKey] || {};
-                    if (Object.values(dayData).includes(staffId) && dayData[slotId] != staffId && staffId !== "") {
-                        showNotification("Bu personel zaten görevli!", "error");
-                        return prev;
-                    }
-                    const updatedDayData = { ...dayData, [slotId]: staffId };
-                    if (!staffId) delete updatedDayData[slotId];
-                    return { ...prev, [dateKey]: updatedDayData };
-                });
-            };
-
-            const autoFillMonth = () => {
-                const year = currentDate.getFullYear();
-                const month = currentDate.getMonth();
-                const days = getDaysInMonth(currentDate);
-                const newAssignments = { ...assignments };
-                const prefix = formatDateKey(year, month, 1).substring(0, 7);
-                Object.keys(newAssignments).forEach(k => { if(k.startsWith(prefix)) delete newAssignments[k]; });
+            // 3. HTML2Canvas ile yakala
+            html2canvas(wrapper, {
+                scale: 5, // 5 kat kalite (Çok net)
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                windowWidth: wrapper.scrollWidth + 100, // Genişlik sınırı yok
+                width: wrapper.scrollWidth + 40,
+                height: wrapper.scrollHeight + 40,
+                x: 0,
+                y: 0
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Acil_Nobet_Listesi_${dateVal}.jpg`;
+                link.href = canvas.toDataURL('image/jpeg', 0.95);
+                link.click();
                 
-                const tempStats = {};
-                staffList.forEach(s => tempStats[s.id] = 0);
+                // Temizlik
+                document.body.removeChild(wrapper);
+                document.getElementById('loading').style.display = 'none';
+            }).catch(err => {
+                alert('Hata oluştu: ' + err);
+                if(wrapper) document.body.removeChild(wrapper);
+                document.getElementById('loading').style.display = 'none';
+            });
+        }, 500);
+    }
+</script>
 
-                days.forEach(day => {
-                    const dateKey = formatDateKey(year, month, day);
-                    const dayAssignments = {};
-                    const usedStaffIds = new Set();
-                    DUTY_SLOTS.forEach(slot => {
-                        let candidates = [];
-                        if (slot.type === '24') candidates = staffList.filter(s => s.group === 'A' && !usedStaffIds.has(s.id));
-                        else candidates = staffList.filter(s => !usedStaffIds.has(s.id));
-                        
-                        if (candidates.length > 0) {
-                            candidates.sort((a, b) => tempStats[a.id] - tempStats[b.id]);
-                            const chosen = candidates[Math.floor(Math.random() * Math.min(5, candidates.length))];
-                            dayAssignments[slot.id] = chosen.id;
-                            usedStaffIds.add(chosen.id);
-                            tempStats[chosen.id] += 1;
-                        }
-                    });
-                    newAssignments[dateKey] = dayAssignments;
-                });
-                setAssignments(newAssignments);
-                setShowAutoFillConfirm(false);
-                showNotification("Dağıtım tamamlandı.", "success");
-            };
-
-            const autoFillDay = () => {
-                if (!selectedDay) return;
-                const dateKey = formatDateKey(currentDate.getFullYear(), currentDate.getMonth(), selectedDay);
-                const currentDayAssignments = { ...assignments[dateKey] } || {};
-                const usedStaffIds = new Set(Object.values(currentDayAssignments).map(id => parseInt(id)));
-                const availableA = staffList.filter(s => s.group === 'A' && !usedStaffIds.has(s.id));
-                const availableB = staffList.filter(s => s.group === 'B' && !usedStaffIds.has(s.id));
-                const poolA = [...availableA].sort(() => Math.random() - 0.5);
-                const poolB = [...availableB].sort(() => Math.random() - 0.5);
-                const newAssigns = { ...currentDayAssignments };
-
-                DUTY_SLOTS.forEach(slot => {
-                    if (!newAssigns[slot.id]) {
-                        let candidate = null;
-                        if (slot.type === '24') { if (poolA.length > 0) candidate = poolA.pop(); }
-                        else { if (poolB.length > 0) candidate = poolB.pop(); else if (poolA.length > 0) candidate = poolA.pop(); }
-                        if (candidate) newAssigns[slot.id] = candidate.id;
-                    }
-                });
-                setAssignments(prev => ({ ...prev, [dateKey]: newAssigns }));
-            };
-
-            const clearDay = () => {
-                const dateKey = formatDateKey(currentDate.getFullYear(), currentDate.getMonth(), selectedDay);
-                const newAssigns = { ...assignments };
-                delete newAssigns[dateKey];
-                setAssignments(newAssigns);
-            }
-
-            const downloadAsJpg = async () => {
-                showNotification("5x Kalite JPG hazırlanıyor...", "info");
-                if(!matrixRef.current) return;
-                
-                const element = matrixRef.current;
-                const originalOverflow = element.style.overflow;
-                const originalHeight = element.style.height;
-                element.style.overflow = 'visible';
-                element.style.height = 'auto';
-                element.style.width = 'fit-content';
-                element.style.minWidth = '100%';
-
-                try {
-                    const canvas = await html2canvas(element, { 
-                        scale: 5, 
-                        useCORS: true,
-                        windowWidth: element.scrollWidth + 100,
-                        windowHeight: element.scrollHeight + 100,
-                        backgroundColor: '#ffffff',
-                        logging: false
-                    });
-                    const image = canvas.toDataURL("image/jpeg", 0.95);
-                    const link = document.createElement("a");
-                    link.href = image;
-                    link.download = `Nobet_Listesi_${MONTHS[currentDate.getMonth()]}_${currentDate.getFullYear()}.jpg`;
-                    link.click();
-                    showNotification("JPG İndirildi.", "success");
-                } catch(e) {
-                    showNotification("Hata oluştu.", "error");
-                    console.error(e);
-                } finally {
-                    element.style.overflow = originalOverflow;
-                    element.style.height = originalHeight;
-                    element.style.width = 'auto';
-                    element.style.minWidth = 'auto';
-                }
-            };
-
-            return (
-                <div className="pb-20">
-                    {notification && <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[60] px-6 py-3 rounded-full shadow-2xl text-white font-bold flex items-center gap-2 animate-bounce ${notification.type==='error'?'bg-red-600':'bg-teal-600'}`}>{notification.type==='error'?<Icons.AlertTriangle size={20}/>:<Icons.Check size={20}/>}{notification.message}</div>}
-                    
-                    {showAutoFillConfirm && (
-                        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4 no-print">
-                            <div className="bg-white p-6 rounded-lg shadow-2xl max-w-md w-full border-t-4 border-purple-600">
-                                <h3 className="text-xl font-bold mb-2 flex items-center gap-2"><Icons.Sparkles className="text-purple-600"/> Otomatik Dağıt?</h3>
-                                <p className="text-gray-600 mb-6 font-medium">Mevcut ayın tüm verileri silinip yeniden dağıtılacak.</p>
-                                <div className="flex justify-end gap-3">
-                                    <button onClick={()=>setShowAutoFillConfirm(false)} className="px-4 py-2 bg-gray-200 rounded font-bold hover:bg-gray-300">İptal</button>
-                                    <button onClick={autoFillMonth} className="px-6 py-2 bg-purple-600 text-white rounded font-bold hover:bg-purple-700 shadow">Onayla</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    <header className="bg-gradient-to-r from-teal-700 to-teal-900 text-white p-4 shadow-lg sticky top-0 z-40 no-print">
-                        <div className="container mx-auto flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                                <div className="bg-white/10 p-2 rounded"><Icons.Calendar size={24} /></div>
-                                <div><h1 className="font-black text-xl tracking-tight">ACİL NÖBET</h1></div>
-                            </div>
-                            <div className="hidden md:flex gap-3">
-                                <button onClick={()=>setViewMode('calendar')} className={`px-4 py-2 rounded-lg font-bold transition-all ${viewMode==='calendar'?'bg-white text-teal-900 shadow':'hover:bg-teal-600 text-teal-50'}`}>Takvim</button>
-                                <button onClick={()=>setViewMode('matrix')} className={`px-4 py-2 rounded-lg font-bold transition-all ${viewMode==='matrix'?'bg-white text-teal-900 shadow':'hover:bg-teal-600 text-teal-50'}`}>Çizelge</button>
-                                <button onClick={()=>setViewMode('staff')} className={`px-4 py-2 rounded-lg font-bold transition-all ${viewMode==='staff'?'bg-white text-teal-900 shadow':'hover:bg-teal-600 text-teal-50'}`}>Personel</button>
-                            </div>
-                            <button className="md:hidden p-2" onClick={()=>setIsMobileMenuOpen(!isMobileMenuOpen)}>{isMobileMenuOpen ? <Icons.X/> : <Icons.Menu/>}</button>
-                        </div>
-                        {isMobileMenuOpen && (
-                            <div className="flex flex-col gap-2 mt-4 md:hidden pb-2 border-t border-teal-600 pt-2">
-                                <button onClick={()=>{setViewMode('calendar');setIsMobileMenuOpen(false)}} className="p-3 bg-teal-800 rounded font-bold text-left">Takvim</button>
-                                <button onClick={()=>{setViewMode('matrix');setIsMobileMenuOpen(false)}} className="p-3 bg-teal-800 rounded font-bold text-left">Çizelge</button>
-                                <button onClick={()=>{setViewMode('staff');setIsMobileMenuOpen(false)}} className="p-3 bg-teal-800 rounded font-bold text-left">Personel</button>
-                            </div>
-                        )}
-                    </header>
-
-                    <main className="container mx-auto p-2 md:p-6">
-                        <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 no-print">
-                            <div className="flex items-center gap-4 bg-gray-50 p-2 rounded-full border">
-                                <button onClick={()=>{const d=new Date(currentDate);d.setMonth(d.getMonth()-1);setCurrentDate(d)}} className="p-1 hover:bg-gray-200 rounded-full"><Icons.ChevronLeft/></button>
-                                <span className="font-bold w-32 text-center text-gray-700">{MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}</span>
-                                <button onClick={()=>{const d=new Date(currentDate);d.setMonth(d.getMonth()+1);setCurrentDate(d)}} className="p-1 hover:bg-gray-200 rounded-full"><Icons.ChevronRight/></button>
-                            </div>
-                            {viewMode==='matrix' && (
-                                <div className="flex flex-wrap gap-2 justify-center w-full md:w-auto">
-                                    <button onClick={()=>setShowAutoFillConfirm(true)} className="px-4 py-2.5 bg-purple-600 text-white rounded font-bold shadow hover:bg-purple-700 flex items-center gap-2"><Icons.Sparkles size={18}/> OTO PLANLA</button>
-                                    <button onClick={downloadAsJpg} className="px-4 py-2.5 bg-blue-600 text-white rounded font-bold shadow hover:bg-blue-700 flex items-center gap-2"><Icons.Image size={18}/> JPG İNDİR</button>
-                                    <button onClick={()=>window.print()} className="px-4 py-2.5 bg-red-600 text-white rounded font-bold shadow hover:bg-red-700 flex items-center gap-2"><Icons.FileText size={18}/> PDF / YAZDIR</button>
-                                </div>
-                            )}
-                        </div>
-
-                        {viewMode === 'staff' && <StaffManager staffList={staffList} setStaffList={setStaffList} showNotification={showNotification} />}
-                        
-                        {viewMode === 'calendar' && (
-                            <div className="grid grid-cols-2 md:grid-cols-7 gap-2">
-                                {getDaysInMonth(currentDate).map(d => {
-                                    const key = formatDateKey(currentDate.getFullYear(), currentDate.getMonth(), d);
-                                    const count = Object.keys(assignments[key] || {}).length;
-                                    const isWknd = [0,6].includes(new Date(currentDate.getFullYear(), currentDate.getMonth(), d-1).getDay());
-                                    return (
-                                        <div key={d} onClick={()=>setSelectedDay(d)} className={`h-28 border-2 rounded-xl p-3 cursor-pointer bg-white hover:shadow-lg relative transition-all group ${isWknd?'border-red-200 bg-red-50/30':''}`}>
-                                            <span className={`text-xl font-bold ${isWknd?'text-red-500':'text-gray-700'}`}>{d}</span>
-                                            {count>0 && <span className={`absolute top-3 right-3 text-xs px-2 py-1 rounded-full font-bold shadow-sm ${count===18?'bg-green-500 text-white':'bg-orange-100 text-orange-600'}`}>{count}/18</span>}
-                                            {count===0 && <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-30 transition-opacity"><Icons.Plus size={32} className="text-teal-600"/></div>}
-                                        </div>
-                                    )
-                                })}
-                            </div>
-                        )}
-
-                        {viewMode === 'matrix' && (
-                            <div className="bg-white shadow-xl rounded-lg p-4 overflow-x-auto print-container" ref={matrixRef}>
-                                <div className="text-center mb-6 border-b pb-4">
-                                    <h1 className="text-2xl font-black text-gray-900 tracking-wide">ERİŞKİN ACİL NÖBET ÇİZELGESİ</h1>
-                                    <h2 className="text-lg font-bold text-gray-600 uppercase">{MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}</h2>
-                                </div>
-                                <table className="w-full border-collapse text-[10px]">
-                                    <thead>
-                                        <tr>
-                                            <th className="border p-1 bg-gray-100 sticky-col min-w-[150px] text-left z-20 shadow-sm border-gray-400">PERSONEL</th>
-                                            {getDaysInMonth(currentDate).map(d => {
-                                                const day = new Date(currentDate.getFullYear(), currentDate.getMonth(), d-1).getDay();
-                                                const isWknd = day===0 || day===6;
-                                                return (
-                                                    <th key={d} className={`border border-gray-400 p-0.5 text-center min-w-[24px] ${isWknd?'bg-red-100 text-red-700':'bg-gray-50'}`}>
-                                                        <div className="font-bold text-sm">{d}</div>
-                                                        <div className="text-[9px] font-normal">{['Pz','Pt','Sa','Ça','Pe','Cu','Ct'][new Date(currentDate.getFullYear(), currentDate.getMonth(), d).getDay()]}</div>
-                                                    </th>
-                                                )
-                                            })}
-                                            <th className="border border-gray-400 bg-gray-100 w-8" title="ÇGMS">ÇGMS</th>
-                                            <th className="border border-gray-400 bg-yellow-100 w-8" title="TÇS">TÇS</th>
-                                            <th className="border border-gray-400 w-6">16</th><th className="border border-gray-400 w-6">8</th>
-                                            <th className="border border-gray-400 w-6">Cts</th><th className="border border-gray-400 w-6">Pzr</th>
-                                            <th className="border border-gray-400 bg-red-100 w-6">HS</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {staffList.sort((a,b)=>a.name.localeCompare(b.name)).map((s, i) => {
-                                            const st = stats[s.id];
-                                            return (
-                                                <tr key={s.id} className={i%2===0?'bg-white':'bg-gray-50 hover:bg-yellow-50'}>
-                                                    <td className="border border-gray-400 p-1 pl-2 font-bold sticky-col bg-inherit truncate text-xs z-10">{s.name} {s.group==='B' && <span className="text-[9px] text-purple-600 ml-1">(B)</span>}</td>
-                                                    {getDaysInMonth(currentDate).map(d => {
-                                                        const key = formatDateKey(currentDate.getFullYear(), currentDate.getMonth(), d);
-                                                        const slotId = Object.keys(assignments[key]||{}).find(k=>assignments[key][k]==s.id);
-                                                        const slot = slotId ? DUTY_SLOTS.find(x=>x.id===slotId) : null;
-                                                        let cls = "";
-                                                        if(slot) cls = slot.type==='24' ? 'bg-blue-200 text-blue-900 font-bold border-blue-400 print:bg-blue-200' : slot.type==='16' ? 'bg-orange-200 text-orange-900 font-bold border-orange-400 print:bg-orange-200' : 'bg-green-200 text-green-900 font-bold border-green-400 print:bg-green-200';
-                                                        return <td key={d} className={`border border-gray-400 text-center p-0 ${cls}`}>{slot ? slot.type : ''}</td>
-                                                    })}
-                                                    <td className="border border-gray-400 text-center text-gray-700">{st.cgms}</td>
-                                                    <td className="border border-gray-400 text-center font-bold bg-yellow-50">{st.tcs}</td>
-                                                    <td className="border border-gray-400 text-center text-gray-500">{st.s16}</td>
-                                                    <td className="border border-gray-400 text-center text-gray-500">{st.s8}</td>
-                                                    <td className="border border-gray-400 text-center text-gray-500">{st.cts}</td>
-                                                    <td className="border border-gray-400 text-center text-gray-500">{st.pzr}</td>
-                                                    <td className="border border-gray-400 text-center font-bold text-red-600 bg-red-50">{st.hs}</td>
-                                                </tr>
-                                            )
-                                        })}
-                                    </tbody>
-                                </table>
-                                
-                                <div className="mt-6 flex flex-wrap gap-4 text-[10px] md:text-xs justify-between print:mt-4">
-                                    <div className="border border-gray-400 p-2 rounded min-w-[200px] bg-white">
-                                        <h4 className="font-bold border-b border-gray-300 mb-1 flex items-center gap-1"><Icons.Info size={12}/> KISALTMALAR</h4>
-                                        <div className="grid grid-cols-2 gap-x-2">
-                                            <span>ÇGMS: Nöbet Sayısı</span><span>TÇS: Toplam Saat</span>
-                                            <span>HS: Haftasonu</span><span>16/8: Kısa Nöbet</span>
-                                        </div>
-                                    </div>
-                                    <div className="border border-gray-400 p-2 rounded min-w-[150px] bg-white">
-                                        <h4 className="font-bold border-b border-gray-300 mb-1">RENK KODLARI</h4>
-                                        <div className="flex flex-col gap-1">
-                                            <div className="flex gap-2 items-center"><span className="w-3 h-3 bg-blue-200 border border-black block"></span> 24 Saat</div>
-                                            <div className="flex gap-2 items-center"><span className="w-3 h-3 bg-orange-200 border border-black block"></span> 16 Saat</div>
-                                            <div className="flex gap-2 items-center"><span className="w-3 h-3 bg-green-200 border border-black block"></span> 8 Saat</div>
-                                        </div>
-                                    </div>
-                                    <div className="border border-gray-400 p-2 rounded min-w-[250px] flex flex-col justify-between bg-white">
-                                        <h4 className="font-bold border-b border-gray-300 mb-1">ONAY</h4>
-                                        <div className="flex justify-between px-2 pt-4">
-                                            <div className="text-center"><p>Acil Sorumlusu</p><p className="mt-4 border-b border-black w-20 mx-auto"></p></div>
-                                            <div className="text-center"><p>Başhekim</p><p className="mt-4 border-b border-black w-20 mx-auto"></p></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </main>
-
-                    {selectedDay && (
-                        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 no-print">
-                            <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col border border-gray-300">
-                                <div className="p-4 border-b bg-gray-50 flex justify-between items-center rounded-t-xl">
-                                    <h2 className="font-bold text-xl text-gray-800">{selectedDay} {MONTHS[currentDate.getMonth()]}</h2>
-                                    <button onClick={()=>setSelectedDay(null)} className="p-1 hover:bg-gray-200 rounded-full"><Icons.X/></button>
-                                </div>
-                                <div className="p-4 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-3 gap-3 bg-gray-100">
-                                    {DUTY_SLOTS.map(slot => (
-                                        <div key={slot.id} className={`p-3 bg-white border rounded-lg shadow-sm flex flex-col gap-2 ${slot.type==='24'?'border-blue-200':slot.type==='16'?'border-orange-200':'border-green-200'}`}>
-                                            <div className="flex justify-between font-bold text-xs text-gray-700">
-                                                <span>{slot.label}</span>
-                                                <span className={`px-2 py-0.5 rounded-full text-white ${slot.type==='24'?'bg-blue-600':slot.type==='16'?'bg-orange-500':'bg-green-600'}`}>{slot.type} Saat</span>
-                                            </div>
-                                            <select className="w-full text-sm border p-2 rounded focus:ring-2 focus:ring-teal-500 outline-none" 
-                                                value={assignments[formatDateKey(currentDate.getFullYear(), currentDate.getMonth(), selectedDay)]?.[slot.id]||""}
-                                                onChange={(e)=>handleAssignment(slot.id, e.target.value)}
-                                            >
-                                                <option value="">-- SEÇ --</option>
-                                                {staffList.filter(s=>slot.type==='24'?s.group==='A':true).sort((a,b)=>a.name.localeCompare(b.name)).map(s=>(
-                                                    <option key={s.id} value={s.id}>{s.name} ({stats[s.id].tcs}s)</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="p-3 border-t bg-gray-50 flex justify-between rounded-b-xl">
-                                    <button onClick={clearDay} className="text-red-600 font-bold flex items-center gap-1 hover:bg-red-50 px-3 py-1 rounded"><Icons.Trash2 size={18}/> TEMİZLE</button>
-                                    <button onClick={()=>{
-                                        const k = formatDateKey(currentDate.getFullYear(), currentDate.getMonth(), selectedDay);
-                                        const dayData = {...(assignments[k]||{})};
-                                        const busy = new Set(Object.values(dayData).map(v=>parseInt(v)));
-                                        const poolA = staffList.filter(s=>s.group==='A' && !busy.has(s.id)).sort(()=>Math.random()-0.5);
-                                        const poolB = staffList.filter(s=>s.group==='B' && !busy.has(s.id)).sort(()=>Math.random()-0.5);
-                                        DUTY_SLOTS.forEach(s=>{
-                                            if(!dayData[s.id]) {
-                                                if(s.type==='24' && poolA.length) dayData[s.id]=poolA.pop().id;
-                                                else if(s.type!=='24') {
-                                                    if(poolB.length) dayData[s.id]=poolB.pop().id;
-                                                    else if(poolA.length) dayData[s.id]=poolA.pop().id;
-                                                }
-                                            }
-                                        });
-                                        setAssignments({...assignments, [k]: dayData});
-                                    }} className="bg-purple-600 text-white px-4 py-2 rounded font-bold flex items-center gap-2 hover:bg-purple-700 shadow"><Icons.Sparkles size={18}/> RASTGELE DOLDUR</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )
-        }
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
 </body>
 </html>
-
-
