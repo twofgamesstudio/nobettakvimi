@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Calendar, Users, Printer, Trash2, Plus, FileSpreadsheet, ChevronLeft, ChevronRight, X, Sparkles, Check, AlertTriangle, Menu, Image as ImageIcon, FileText } from 'lucide-react';
+import { Calendar, Users, Printer, Trash2, Plus, FileSpreadsheet, ChevronLeft, ChevronRight, X, Sparkles, Check, AlertTriangle, Menu, Image as ImageIcon, FileText, Download, Save } from 'lucide-react';
 
-// --- VERİ YAPILARI ---
+// --- SABİT VERİLER (PERSONEL LİSTESİ) ---
 
 const INITIAL_STAFF = [
-  // GRUP A (24 Saat tutabilenler)
+  // GRUP A (24 Saat tutabilenler - 55 Kişi)
   { id: 1, name: "ABDURRAHMAN ŞAHİN", group: "A" },
   { id: 2, name: "AHMET ALTINTAŞ", group: "A" },
   { id: 3, name: "AHMET KAYA", group: "A" },
@@ -59,9 +59,7 @@ const INITIAL_STAFF = [
   { id: 52, name: "YASİN KİRAZ", group: "A" },
   { id: 53, name: "YUNUS EMRE YILDIZ", group: "A" },
   { id: 54, name: "ZEHRA TEKBIÇAK", group: "A" },
-  { id: 64, name: "YENİ PERSONEL A", group: "A" }, 
-
-  // GRUP B (Sadece 8-16 Saat tutabilenler)
+  // GRUP B (Sadece 8-16 Saat tutabilenler - 9 Kişi)
   { id: 55, name: "PINAR İLÇİN", group: "B" },
   { id: 56, name: "ÖZLEM BOZKURT", group: "B" },
   { id: 57, name: "NURCAN ÇİFTÇİ", group: "B" },
@@ -75,26 +73,26 @@ const INITIAL_STAFF = [
 
 const DUTY_SLOTS = [
   // 24 SAATLİK (14 Kişi)
-  { id: 'sari_1', label: 'Sarı Alan 1', type: '24', area: 'Sarı Alan' },
-  { id: 'sari_2', label: 'Sarı Alan 2', type: '24', area: 'Sarı Alan' },
-  { id: 'sari_3', label: 'Sarı Alan 3', type: '24', area: 'Sarı Alan' },
-  { id: 'sari_4', label: 'Sarı Alan 4', type: '24', area: 'Sarı Alan' },
-  { id: 'kadin_1', label: 'Kadın Gözlem 1', type: '24', area: 'Kadın Gözlem' },
-  { id: 'kadin_2', label: 'Kadın Gözlem 2', type: '24', area: 'Kadın Gözlem' },
-  { id: 'kadin_3', label: 'Kadın Gözlem 3', type: '24', area: 'Kadın Gözlem' },
-  { id: 'erkek_1', label: 'Erkek Gözlem 1', type: '24', area: 'Erkek Gözlem' },
-  { id: 'erkek_2', label: 'Erkek Gözlem 2', type: '24', area: 'Erkek Gözlem' },
-  { id: 'erkek_3', label: 'Erkek Gözlem 3', type: '24', area: 'Erkek Gözlem' },
-  { id: 'triaj_24_1', label: 'Triaj 1 (24s)', type: '24', area: 'Triaj' },
-  { id: 'triaj_24_2', label: 'Triaj 2 (24s)', type: '24', area: 'Triaj' },
-  { id: 'yesil_24_1', label: 'Yeşil Alan 1 (24s)', type: '24', area: 'Yeşil Alan' },
-  { id: 'yesil_24_2', label: 'Yeşil Alan 2 (24s)', type: '24', area: 'Yeşil Alan' },
+  { id: 'sari_1', label: 'Sarı 1', type: '24', area: 'Sarı Alan' },
+  { id: 'sari_2', label: 'Sarı 2', type: '24', area: 'Sarı Alan' },
+  { id: 'sari_3', label: 'Sarı 3', type: '24', area: 'Sarı Alan' },
+  { id: 'sari_4', label: 'Sarı 4', type: '24', area: 'Sarı Alan' },
+  { id: 'kadin_1', label: 'Kadın Göz. 1', type: '24', area: 'Kadın Gözlem' },
+  { id: 'kadin_2', label: 'Kadın Göz. 2', type: '24', area: 'Kadın Gözlem' },
+  { id: 'kadin_3', label: 'Kadın Göz. 3', type: '24', area: 'Kadın Gözlem' },
+  { id: 'erkek_1', label: 'Erkek Göz. 1', type: '24', area: 'Erkek Gözlem' },
+  { id: 'erkek_2', label: 'Erkek Göz. 2', type: '24', area: 'Erkek Gözlem' },
+  { id: 'erkek_3', label: 'Erkek Göz. 3', type: '24', area: 'Erkek Gözlem' },
+  { id: 'triaj_24_1', label: 'Triaj 1 (24)', type: '24', area: 'Triaj' },
+  { id: 'triaj_24_2', label: 'Triaj 2 (24)', type: '24', area: 'Triaj' },
+  { id: 'yesil_24_1', label: 'Yeşil 1 (24)', type: '24', area: 'Yeşil Alan' },
+  { id: 'yesil_24_2', label: 'Yeşil 2 (24)', type: '24', area: 'Yeşil Alan' },
 
   // KISA NÖBETLER (4 Kişi)
-  { id: 'triaj_16', label: 'Triaj (16s)', type: '16', area: 'Triaj' },
-  { id: 'yesil_16', label: 'Yeşil Alan (16s)', type: '16', area: 'Yeşil Alan' },
-  { id: 'triaj_8', label: 'Triaj (8s)', type: '8', area: 'Triaj' },
-  { id: 'yesil_8', label: 'Yeşil Alan (8s)', type: '8', area: 'Yeşil Alan' },
+  { id: 'triaj_16', label: 'Triaj (16)', type: '16', area: 'Triaj' },
+  { id: 'yesil_16', label: 'Yeşil (16)', type: '16', area: 'Yeşil Alan' },
+  { id: 'triaj_8', label: 'Triaj (8)', type: '8', area: 'Triaj' },
+  { id: 'yesil_8', label: 'Yeşil (8)', type: '8', area: 'Yeşil Alan' },
 ];
 
 const MONTHS = [
@@ -102,7 +100,7 @@ const MONTHS = [
   "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
 ];
 
-// --- AYRIŞTIRILMIŞ BİLEŞEN: StaffManager ---
+// --- YARDIMCI BİLEŞEN: StaffManager ---
 const StaffManager = ({ staffList, setStaffList, showNotification }) => {
     const [newName, setNewName] = useState("");
     const [newGroup, setNewGroup] = useState("A");
@@ -113,7 +111,7 @@ const StaffManager = ({ staffList, setStaffList, showNotification }) => {
         const maxId = staffList.length > 0 ? Math.max(...staffList.map(s => s.id)) : 0;
         setStaffList([...staffList, { id: maxId + 1, name: newName.toUpperCase(), group: newGroup }]);
         setNewName("");
-        showNotification("Personel başarıyla eklendi.", "success");
+        showNotification("Personel eklendi.", "success");
     }
 
     const deleteStaff = (id) => {
@@ -128,58 +126,56 @@ const StaffManager = ({ staffList, setStaffList, showNotification }) => {
     }
 
     return (
-        <div className="bg-white p-4 md:p-6 rounded-lg shadow-lg">
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><Users /> Personel Yönetimi</h2>
+        <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-teal-800"><Users /> Personel Listesi Düzenle</h2>
             
-            <div className="flex flex-col md:flex-row gap-2 mb-6">
+            <div className="flex flex-col sm:flex-row gap-2 mb-4 bg-gray-50 p-3 rounded">
                 <input 
                     type="text" 
-                    placeholder="Ad Soyad" 
-                    className="border p-2 rounded flex-1 uppercase w-full"
+                    placeholder="AD SOYAD GİRİNİZ" 
+                    className="border p-2 rounded flex-1 uppercase w-full outline-none focus:ring-2 focus:ring-teal-500"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                 />
                 <select 
-                    className="border p-2 rounded w-full md:w-auto"
+                    className="border p-2 rounded w-full sm:w-auto outline-none"
                     value={newGroup}
                     onChange={(e) => setNewGroup(e.target.value)}
                 >
-                    <option value="A">Grup A (Her Şey)</option>
+                    <option value="A">Grup A (Tüm Nöbetler)</option>
                     <option value="B">Grup B (Kısa Nöbet)</option>
                 </select>
-                <button onClick={addStaff} className="bg-green-600 text-white p-2 rounded hover:bg-green-700 flex items-center justify-center gap-1 w-full md:w-auto">
-                    <Plus size={18} /> Ekle
+                <button onClick={addStaff} className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 font-bold w-full sm:w-auto">
+                    EKLE
                 </button>
             </div>
 
-            <div className="max-h-[500px] overflow-y-auto border rounded">
+            <div className="max-h-[60vh] overflow-y-auto border rounded">
                 <table className="w-full text-sm">
-                    <thead className="bg-gray-100 sticky top-0">
+                    <thead className="bg-gray-100 sticky top-0 z-10">
                         <tr>
-                            <th className="p-2 text-left">İsim</th>
-                            <th className="p-2 text-center">Grup</th>
-                            <th className="p-2 text-right">İşlem</th>
+                            <th className="p-3 text-left font-bold text-gray-600">Sıra</th>
+                            <th className="p-3 text-left font-bold text-gray-600">İsim</th>
+                            <th className="p-3 text-center font-bold text-gray-600">Grup</th>
+                            <th className="p-3 text-right font-bold text-gray-600">İşlem</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {staffList.map(staff => (
-                            <tr key={staff.id} className="border-t hover:bg-gray-50">
-                                <td className="p-2">{staff.name}</td>
-                                <td className="p-2 text-center">
-                                    <span className={`px-2 py-0.5 rounded text-xs ${staff.group === 'A' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                        {staffList.map((staff, index) => (
+                            <tr key={staff.id} className="border-t hover:bg-teal-50 transition-colors">
+                                <td className="p-3 text-gray-500 w-12">{index + 1}</td>
+                                <td className="p-3 font-medium">{staff.name}</td>
+                                <td className="p-3 text-center">
+                                    <span className={`px-2 py-1 rounded text-xs font-bold ${staff.group === 'A' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>
                                         {staff.group}
                                     </span>
                                 </td>
-                                <td className="p-2 text-right">
+                                <td className="p-3 text-right">
                                     <button 
                                         onClick={() => deleteStaff(staff.id)} 
-                                        className={`flex items-center gap-1 ml-auto px-2 py-1 rounded transition-colors ${deleteConfirmId === staff.id ? 'bg-red-600 text-white' : 'text-red-500 hover:bg-red-50'}`}
+                                        className={`px-3 py-1 rounded text-xs font-bold transition-all ${deleteConfirmId === staff.id ? 'bg-red-600 text-white' : 'text-red-500 hover:bg-red-100'}`}
                                     >
-                                        {deleteConfirmId === staff.id ? (
-                                            <>Onayla <Check size={14}/></>
-                                        ) : (
-                                            <Trash2 size={16} />
-                                        )}
+                                        {deleteConfirmId === staff.id ? 'EMİN MİSİN?' : 'SİL'}
                                     </button>
                                 </td>
                             </tr>
@@ -191,23 +187,25 @@ const StaffManager = ({ staffList, setStaffList, showNotification }) => {
     )
 }
 
-// --- ANA BİLEŞEN ---
+// --- ANA UYGULAMA ---
 
 export default function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [staffList, setStaffList] = useState(INITIAL_STAFF);
   const [assignments, setAssignments] = useState({});
   const [selectedDay, setSelectedDay] = useState(null);
-  const [viewMode, setViewMode] = useState('calendar');
+  const [viewMode, setViewMode] = useState('matrix'); // Varsayılan görünüm Çizelge
   const [notification, setNotification] = useState(null);
   const [showAutoFillConfirm, setShowAutoFillConfirm] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const matrixRef = useRef(null);
 
+  // --- YARDIMCI FONKSİYONLAR ---
+
   const showNotification = (message, type = 'info') => {
       setNotification({ message, type });
-      setTimeout(() => setNotification(null), 3000);
+      setTimeout(() => setNotification(null), 4000);
   };
 
   const getDaysInMonth = (date) => {
@@ -228,16 +226,31 @@ export default function App() {
     return date.toLocaleDateString('tr-TR', { weekday: 'short' });
   };
 
+  const isWeekend = (year, month, day) => {
+      const d = new Date(year, month, day).getDay();
+      return d === 0 || d === 6; // 0: Pazar, 6: Cumartesi
+  }
+
   const changeMonth = (delta) => {
     const newDate = new Date(currentDate);
     newDate.setMonth(newDate.getMonth() + delta);
     setCurrentDate(newDate);
   };
 
-  // --- İSTATİSTİKLER ---
+  // --- İSTATİSTİK HESAPLAMA MOTORU ---
   const calculateStats = () => {
     const stats = {};
-    staffList.forEach(s => stats[s.id] = { hours: 0, shifts: 0 });
+    staffList.forEach(s => {
+        stats[s.id] = { 
+            cgms: 0, // ÇGMS: Çalışılan Gün Miktarı Sayısı (Nöbet Sayısı)
+            tcs: 0, // TÇS: Toplam Çalışma Saati
+            s16: 0, // 16 Saatlik Nöbet Sayısı
+            s8: 0, // 8 Saatlik Nöbet Sayısı
+            cts: 0, // Cumartesi Sayısı
+            pzr: 0, // Pazar Sayısı
+            hs: 0 // Toplam Haftasonu
+        }
+    });
 
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1;
@@ -245,13 +258,31 @@ export default function App() {
 
     Object.keys(assignments).forEach(dateKey => {
       if (dateKey.startsWith(prefix)) {
+        const [y, m, d] = dateKey.split('-').map(Number);
+        const dayOfWeek = new Date(y, m - 1, d).getDay(); // 0: Pazar, 6: Cumartesi
+        
         const dayAssignments = assignments[dateKey];
         Object.keys(dayAssignments).forEach(slotId => {
           const staffId = dayAssignments[slotId];
           const slotDef = DUTY_SLOTS.find(s => s.id === slotId);
+          
           if (staffId && stats[staffId] && slotDef) {
-            stats[staffId].shifts += 1;
-            stats[staffId].hours += parseInt(slotDef.type);
+            const duration = parseInt(slotDef.type);
+            
+            stats[staffId].cgms += 1;
+            stats[staffId].tcs += duration;
+            
+            if (duration === 16) stats[staffId].s16 += 1;
+            if (duration === 8) stats[staffId].s8 += 1;
+
+            if (dayOfWeek === 6) {
+                 stats[staffId].cts += 1;
+                 stats[staffId].hs += 1;
+            }
+            if (dayOfWeek === 0) {
+                 stats[staffId].pzr += 1;
+                 stats[staffId].hs += 1;
+            }
           }
         });
       }
@@ -261,12 +292,15 @@ export default function App() {
 
   const stats = calculateStats();
 
+  // --- EYLEMLER ---
+
   const handleAssignment = (slotId, staffId) => {
     if (!selectedDay) return;
     const dateKey = formatDateKey(currentDate.getFullYear(), currentDate.getMonth(), selectedDay);
     
     setAssignments(prev => {
       const dayData = prev[dateKey] || {};
+      // Çakışma kontrolü
       const existingSlot = Object.keys(dayData).find(key => dayData[key] == staffId);
       if (existingSlot && existingSlot !== slotId && staffId !== "") {
         const staffName = staffList.find(s=>s.id == staffId)?.name;
@@ -285,6 +319,7 @@ export default function App() {
     const days = getDaysInMonth(currentDate);
     
     const newAssignments = { ...assignments };
+    // Mevcut ayın verilerini temizle
     const prefix = `${year}-${(month + 1).toString().padStart(2, '0')}`;
     Object.keys(newAssignments).forEach(k => {
         if(k.startsWith(prefix)) delete newAssignments[k];
@@ -293,6 +328,7 @@ export default function App() {
     const tempStats = {};
     staffList.forEach(s => tempStats[s.id] = 0);
 
+    // Basit dağıtım algoritması
     days.forEach(day => {
         const dateKey = formatDateKey(year, month, day);
         const dayAssignments = {};
@@ -307,9 +343,11 @@ export default function App() {
             }
 
             if (candidates.length > 0) {
+                // En az nöbeti olana öncelik ver
                 candidates.sort((a, b) => tempStats[a.id] - tempStats[b.id]);
                 
-                const poolSize = Math.min(candidates.length, 6);
+                // İlk 5 adaydan rastgele seç (deterministik olmasın)
+                const poolSize = Math.min(candidates.length, 5);
                 const chosenIndex = Math.floor(Math.random() * poolSize);
                 const chosenStaff = candidates[chosenIndex];
 
@@ -370,26 +408,27 @@ export default function App() {
       setAssignments(newAssignments);
   }
 
-  // --- ÇIKTI VE İNDİRME İŞLEMLERİ ---
+  // --- ÇIKTI VE İNDİRME ---
 
   const printDocument = () => {
     window.print();
   };
 
-  // Dinamik script yükleme ile JPG alma (Çevrimdışı uyumlu hale getirmek için CDN fallback)
+  // JPG İNDİRME (TAM EKRAN + SCROLL FIX)
   const downloadAsJpg = async () => {
-      showNotification("JPG hazırlanıyor...", "info");
+      showNotification("Görüntü oluşturuluyor, lütfen bekleyin...", "info");
       
-      // html2canvas kütüphanesini dinamik olarak yükle
+      // Dinamik Script Yükleme (Offline Safe)
       if (!window.html2canvas) {
           try {
               const script = document.createElement('script');
               script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+              script.crossOrigin = "anonymous"; // CORS fix
               script.onload = () => captureJpg();
-              script.onerror = () => showNotification("İnternet bağlantısı gerekli (JPG için).", "error");
+              script.onerror = () => showNotification("JPG modülü yüklenemedi. İnternet bağlantınızı kontrol edin.", "error");
               document.body.appendChild(script);
           } catch (e) {
-              showNotification("Kütüphane yüklenemedi.", "error");
+              showNotification("Hata oluştu.", "error");
           }
       } else {
           captureJpg();
@@ -399,33 +438,47 @@ export default function App() {
   const captureJpg = () => {
       if (!matrixRef.current || !window.html2canvas) return;
 
-      // Geçici olarak taşmayı görünür yapalım
-      const originalOverflow = matrixRef.current.style.overflow;
-      matrixRef.current.style.overflow = 'visible';
+      const element = matrixRef.current;
+      
+      // Geçici stil değişiklikleri (Scroll'u aç, tam boyutu göster)
+      const originalOverflow = element.style.overflow;
+      const originalHeight = element.style.height;
+      
+      // Önemli: position relative/absolute çakışmalarını önlemek için
+      // görünürlüğü zorla ve genişliği sabitle
+      element.style.overflow = 'visible'; 
+      element.style.height = 'auto';
+      element.style.width = 'fit-content';
+      element.style.minWidth = '100%';
 
-      window.html2canvas(matrixRef.current, { 
-          scale: 2,
+      window.html2canvas(element, { 
+          scale: 2, // Yüksek kalite
           useCORS: true,
+          windowWidth: element.scrollWidth + 50, 
+          windowHeight: element.scrollHeight + 50,
           scrollX: 0,
-          scrollY: 0, // Yüksekliği sıfırla ki en tepeyi alsın
-          width: matrixRef.current.scrollWidth, // Tam genişlik
-          height: matrixRef.current.scrollHeight, // Tam yükseklik
-          windowWidth: matrixRef.current.scrollWidth,
-          windowHeight: matrixRef.current.scrollHeight
+          scrollY: 0,
+          backgroundColor: '#ffffff'
       }).then(canvas => {
-          // Stili geri al
-          matrixRef.current.style.overflow = originalOverflow;
+          // Stilleri geri al
+          element.style.overflow = originalOverflow;
+          element.style.height = originalHeight;
+          element.style.width = 'auto';
+          element.style.minWidth = 'auto';
           
-          const image = canvas.toDataURL("image/jpeg", 1.0);
+          const image = canvas.toDataURL("image/jpeg", 0.9);
           const link = document.createElement("a");
           link.href = image;
           link.download = `Nobet_Listesi_${MONTHS[currentDate.getMonth()]}_${currentDate.getFullYear()}.jpg`;
           link.click();
-          showNotification("JPG İndirildi.", "success");
+          showNotification("JPG başarıyla indirildi.", "success");
       }).catch(err => {
-          matrixRef.current.style.overflow = originalOverflow;
+          // Hata olsa bile stilleri düzelt
+          element.style.overflow = originalOverflow;
+          element.style.height = originalHeight;
+          element.style.width = 'auto';
           console.error(err);
-          showNotification("Görüntü oluşturulamadı.", "error");
+          showNotification("JPG oluşturulurken hata oluştu.", "error");
       });
   };
 
@@ -440,49 +493,42 @@ export default function App() {
     const isFull = assignedCount === 18;
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 md:p-4 overflow-y-auto no-print">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-          <div className="p-4 md:p-6 border-b bg-white z-10 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-2 md:p-4 no-print">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col border border-gray-300">
+          <div className="p-4 border-b bg-gray-50 flex justify-between items-center rounded-t-xl">
             <div>
-              <h2 className="text-xl md:text-2xl font-bold text-gray-800">
-                {selectedDay} {MONTHS[currentDate.getMonth()]} - Planlama
+              <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <Calendar size={20} className="text-teal-600"/>
+                {selectedDay} {MONTHS[currentDate.getMonth()]} - Görevlendirme
               </h2>
-              <p className={`text-sm font-medium ${isFull ? 'text-green-600' : 'text-orange-500'}`}>
-                Doluluk: {assignedCount} / 18 Personel
+              <p className={`text-xs font-bold uppercase mt-1 ${isFull ? 'text-green-600' : 'text-orange-500'}`}>
+                {isFull ? 'Kadro Tamamlandı (18/18)' : `Eksik Personel (${18 - assignedCount} Kişi)`}
               </p>
             </div>
-            <div className="flex flex-wrap gap-2 justify-center">
-                <button onClick={autoFillDay} className="px-3 py-2 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 text-sm font-medium flex-1 md:flex-none whitespace-nowrap">
-                    Bugünü Doldur
-                </button>
-                <button onClick={clearDay} className="px-3 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm font-medium flex-1 md:flex-none">
-                    Temizle
-                </button>
-                <button onClick={() => setSelectedDay(null)} className="p-2 hover:bg-gray-100 rounded-full">
+            <button onClick={() => setSelectedDay(null)} className="p-2 hover:bg-gray-200 rounded-full text-gray-600">
                 <X size={24} />
-                </button>
-            </div>
+            </button>
           </div>
 
-          <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto">
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 overflow-y-auto bg-gray-100 flex-1">
             {DUTY_SLOTS.map(slot => {
               const assignedStaffId = dayData[slot.id];
               const slotColor = slot.type === '24' ? 'bg-blue-50 border-blue-200' : slot.type === '16' ? 'bg-orange-50 border-orange-200' : 'bg-green-50 border-green-200';
-              const typeBadge = slot.type === '24' ? 'bg-blue-600' : slot.type === '16' ? 'bg-orange-500' : 'bg-green-600';
+              const badgeColor = slot.type === '24' ? 'bg-blue-600' : slot.type === '16' ? 'bg-orange-500' : 'bg-green-600';
 
               return (
-                <div key={slot.id} className={`p-3 rounded-lg border ${slotColor} shadow-sm`}>
+                <div key={slot.id} className={`p-3 rounded-lg border ${slotColor} shadow-sm bg-white`}>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="font-semibold text-gray-700 text-sm">{slot.label}</span>
-                    <span className={`${typeBadge} text-white text-xs px-2 py-0.5 rounded-full`}>{slot.type} Saat</span>
+                    <span className="font-bold text-gray-700 text-sm">{slot.label}</span>
+                    <span className={`${badgeColor} text-white text-[10px] px-2 py-0.5 rounded-full font-bold`}>{slot.type} Saat</span>
                   </div>
                   
                   <select 
-                    className="w-full p-2 border rounded bg-white focus:ring-2 focus:ring-blue-500 text-sm"
+                    className="w-full p-2 border rounded bg-white text-sm focus:ring-2 focus:ring-teal-500 outline-none"
                     value={assignedStaffId || ""}
                     onChange={(e) => handleAssignment(slot.id, e.target.value)}
                   >
-                    <option value="">-- Seçiniz --</option>
+                    <option value="">-- Personel Seç --</option>
                     {staffList
                         .filter(s => slot.type === '24' ? s.group === 'A' : true) 
                         .sort((a,b) => a.name.localeCompare(b.name))
@@ -490,7 +536,7 @@ export default function App() {
                             const staffStats = stats[staff.id];
                             return (
                                 <option key={staff.id} value={staff.id}>
-                                    {staff.name} ({staffStats.hours}s) {staff.group === 'B' ? '(B)' : ''}
+                                    {staff.name} ({staffStats.tcs}s)
                                 </option>
                             )
                         })
@@ -499,6 +545,15 @@ export default function App() {
                 </div>
               );
             })}
+          </div>
+
+          <div className="p-3 border-t bg-gray-50 flex justify-between rounded-b-xl">
+             <button onClick={clearDay} className="text-red-600 hover:text-red-800 text-sm font-bold flex items-center gap-1">
+                <Trash2 size={16}/> Temizle
+             </button>
+             <button onClick={autoFillDay} className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 text-sm font-bold flex items-center gap-2">
+                <Sparkles size={16}/> Rastgele Doldur
+             </button>
           </div>
         </div>
       </div>
@@ -509,35 +564,48 @@ export default function App() {
     const days = getDaysInMonth(currentDate);
 
     return (
-      <div className="overflow-x-auto bg-white shadow-lg rounded-lg p-2 md:p-4" ref={matrixRef}>
-        <div className="mb-4 text-center hidden print:block">
-            <h1 className="text-xl font-bold text-gray-900">ERİŞKİN ACİL SERVİS NÖBET ÇİZELGESİ</h1>
-            <h2 className="text-lg text-gray-700">{MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}</h2>
+      <div className="bg-white shadow-xl rounded-lg p-2 md:p-4 overflow-x-auto" ref={matrixRef}>
+        <div className="mb-4 text-center border-b pb-4">
+            <h1 className="text-2xl font-black text-gray-900 tracking-wide">ERİŞKİN ACİL SERVİS NÖBET ÇİZELGESİ</h1>
+            <h2 className="text-lg font-semibold text-gray-700 uppercase">{MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}</h2>
         </div>
 
-        <table className="min-w-full border-collapse text-xs md:text-sm">
+        <table className="w-full border-collapse text-[10px]">
           <thead>
             <tr>
-              <th className="border p-1 md:p-2 bg-gray-100 text-left sticky left-0 z-20 w-32 md:w-48 min-w-[120px]">Personel</th>
-              <th className="border p-1 md:p-2 bg-gray-100 text-center w-8 md:w-12">Top.</th>
-              {days.map(d => (
-                <th key={d} className={`border p-0.5 md:p-1 bg-gray-50 text-center min-w-[24px] md:min-w-[28px] ${[0,6].includes(new Date(currentDate.getFullYear(), currentDate.getMonth(), d-1).getDay()) ? 'bg-red-50 text-red-600' : ''}`}>
-                  <div className="font-bold">{d}</div>
-                  <div className="text-[9px] md:text-[10px] font-normal text-gray-500 hidden md:block">{getDayName(d)}</div>
-                </th>
-              ))}
+              <th className="border border-gray-400 p-1 bg-gray-200 text-left sticky left-0 z-20 w-32 min-w-[120px]">
+                  <div className="font-bold text-gray-800 text-xs">PERSONEL</div>
+              </th>
+              {days.map(d => {
+                  const dayIndex = new Date(currentDate.getFullYear(), currentDate.getMonth(), d-1).getDay();
+                  const isWknd = dayIndex === 0 || dayIndex === 6;
+                  return (
+                    <th key={d} className={`border border-gray-400 p-0.5 text-center min-w-[22px] ${isWknd ? 'bg-red-100 text-red-700' : 'bg-gray-50'}`}>
+                    <div className="font-bold text-sm">{d}</div>
+                    <div className="text-[9px] font-normal">{getDayName(d)}</div>
+                    </th>
+                  );
+              })}
+              {/* İSTATİSTİK SÜTUNLARI - ÖRNEK PLANA GÖRE */}
+              <th className="border border-gray-400 p-1 bg-gray-100 text-center w-8" title="Çalışılan Gün Miktarı Sayısı">ÇGMS</th>
+              <th className="border border-gray-400 p-1 bg-yellow-50 text-center w-8" title="Toplam Çalışma Saati">TÇS</th>
+              <th className="border border-gray-400 p-1 bg-gray-50 text-center w-6" title="16 Saatlik Nöbet">16</th>
+              <th className="border border-gray-400 p-1 bg-gray-50 text-center w-6" title="8 Saatlik Nöbet">8</th>
+              <th className="border border-gray-400 p-1 bg-gray-50 text-center w-6" title="Cumartesi">Cts</th>
+              <th className="border border-gray-400 p-1 bg-gray-50 text-center w-6" title="Pazar">Pzr</th>
+              <th className="border border-gray-400 p-1 bg-red-50 text-center w-6" title="Haftasonu Toplam">HS</th>
             </tr>
           </thead>
           <tbody>
-            {staffList.sort((a,b) => a.name.localeCompare(b.name)).map(staff => {
+            {staffList.sort((a,b) => a.name.localeCompare(b.name)).map((staff, idx) => {
               const staffStats = stats[staff.id];
               return (
-                <tr key={staff.id} className="hover:bg-gray-50">
-                  <td className="border p-1 pl-2 font-medium sticky left-0 bg-white z-10 truncate border-r-2 text-[10px] md:text-xs">
+                <tr key={staff.id} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50 hover:bg-yellow-50"}>
+                  <td className="border border-gray-400 p-1 pl-2 font-bold sticky left-0 bg-white z-10 truncate text-xs">
                     {staff.name} 
-                    {staff.group === 'B' && <span className="text-[9px] ml-1 text-purple-600 hidden md:inline">(B)</span>}
+                    {staff.group === 'B' && <span className="text-[9px] ml-1 text-purple-600 hidden md:inline font-normal">(B)</span>}
                   </td>
-                  <td className="border p-1 text-center font-bold bg-blue-50 text-[10px] md:text-xs">{staffStats.hours}</td>
+                  
                   {days.map(d => {
                     const dateKey = formatDateKey(currentDate.getFullYear(), currentDate.getMonth(), d);
                     const dayData = assignments[dateKey] || {};
@@ -549,45 +617,62 @@ export default function App() {
 
                     if (slot) {
                         cellContent = slot.type;
-                        if(slot.type === '24') cellClass = "bg-blue-100 text-blue-800 font-bold print:bg-gray-200 print:text-black";
-                        else if(slot.type === '16') cellClass = "bg-orange-100 text-orange-800 font-bold print:bg-gray-100 print:text-black";
-                        else if(slot.type === '8') cellClass = "bg-green-100 text-green-800 font-bold print:border-black";
+                        if(slot.type === '24') cellClass = "bg-blue-200 text-blue-900 font-bold border-blue-400 print:bg-gray-300 print:text-black";
+                        else if(slot.type === '16') cellClass = "bg-orange-200 text-orange-900 font-bold border-orange-400 print:bg-gray-100 print:text-black";
+                        else if(slot.type === '8') cellClass = "bg-green-200 text-green-900 font-bold border-green-400 print:bg-white print:text-black";
                     }
 
                     return (
-                      <td key={d} className={`border p-0.5 text-center text-[9px] md:text-[10px] ${cellClass}`}>
+                      <td key={d} className={`border border-gray-400 p-0 text-center ${cellClass}`}>
                         {cellContent}
                       </td>
                     );
                   })}
+
+                  {/* İSTATİSTİK HÜCRELERİ */}
+                  <td className="border border-gray-400 p-1 text-center text-gray-800">{staffStats.cgms}</td>
+                  <td className="border border-gray-400 p-1 text-center font-bold bg-yellow-50">{staffStats.tcs}</td>
+                  <td className="border border-gray-400 p-1 text-center text-gray-600">{staffStats.s16}</td>
+                  <td className="border border-gray-400 p-1 text-center text-gray-600">{staffStats.s8}</td>
+                  <td className="border border-gray-400 p-1 text-center text-gray-600">{staffStats.cts}</td>
+                  <td className="border border-gray-400 p-1 text-center text-gray-600">{staffStats.pzr}</td>
+                  <td className="border border-gray-400 p-1 text-center font-bold text-red-600 bg-red-50">{staffStats.hs}</td>
                 </tr>
               );
             })}
           </tbody>
         </table>
         
-        {/* Footer for Print & JPG */}
-        <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 text-[10px] print:grid-cols-4 print:mt-4">
-             <div className="border p-2">
-                <h4 className="font-bold border-b mb-1">24 Saatlik</h4>
-                <p>Sarı: 4 | Kadın: 3</p>
-                <p>Erkek: 3 | Triaj: 2</p>
-                <p>Yeşil: 2</p>
+        {/* ALT BİLGİ & İMZA & RENKLER */}
+        <div className="mt-6 flex flex-wrap gap-4 text-xs justify-between print:mt-4">
+             <div className="border border-gray-400 p-2 rounded bg-white min-w-[150px]">
+                <h4 className="font-bold border-b border-gray-300 mb-1">Nöbet Dağılımı</h4>
+                <div className="grid grid-cols-2 gap-x-4">
+                    <p>Sarı Alan: 4</p> <p>Kadın Gözlem: 3</p>
+                    <p>Erkek Gözlem: 3</p> <p>Triaj: 2</p>
+                    <p>Yeşil Alan: 2</p>
+                </div>
              </div>
-             <div className="border p-2">
-                <h4 className="font-bold border-b mb-1">Kısa Nöbet</h4>
-                <p>Triaj (8s): 1 | (16s): 1</p>
-                <p>Yeşil (8s): 1 | (16s): 1</p>
+
+             <div className="border border-gray-400 p-2 rounded bg-white min-w-[150px]">
+                 <h4 className="font-bold border-b border-gray-300 mb-1">Renk & Kodlar</h4>
+                 <div className="flex items-center gap-2 mb-1"><div className="w-3 h-3 bg-blue-200 border border-black"></div> 24 Saat</div>
+                 <div className="flex items-center gap-2 mb-1"><div className="w-3 h-3 bg-orange-200 border border-black"></div> 16 Saat</div>
+                 <div className="flex items-center gap-2 mb-1"><div className="w-3 h-3 bg-green-200 border border-black"></div> 8 Saat</div>
              </div>
-             <div className="border p-2">
-                 <h4 className="font-bold border-b mb-1">Kodlar</h4>
-                 <div className="flex items-center gap-2 mb-1">24: Tam Gün</div>
-                 <div className="flex items-center gap-2 mb-1">16: 16 Saat</div>
-                 <div className="flex items-center gap-2 mb-1">8: 8 Saat</div>
-             </div>
-             <div className="border p-2">
-                 <h4 className="font-bold border-b mb-1">Onay</h4>
-                 <p className="mt-4 border-t pt-2">Başhekim / Onay</p>
+
+             <div className="border border-gray-400 p-2 rounded bg-white min-w-[200px] flex-1">
+                 <h4 className="font-bold border-b border-gray-300 mb-1">Onay</h4>
+                 <div className="flex justify-between mt-8 px-4">
+                     <div className="text-center">
+                         <p>Acil Servis Sorumlusu</p>
+                         <p className="mt-4">............................</p>
+                     </div>
+                     <div className="text-center">
+                         <p>Başhekim</p>
+                         <p className="mt-4">............................</p>
+                     </div>
+                 </div>
              </div>
         </div>
       </div>
@@ -595,57 +680,61 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-800 relative">
-      {/* NOTIFICATION TOAST */}
+    <div className="min-h-screen bg-gray-100 font-sans text-gray-800 relative">
+      {/* BİLDİRİM BALONU */}
       {notification && (
-          <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] px-4 md:px-6 py-3 rounded-full shadow-xl text-white font-medium flex items-center gap-2 animate-bounce text-sm md:text-base whitespace-nowrap ${notification.type === 'error' ? 'bg-red-600' : 'bg-green-600'}`}>
-              {notification.type === 'error' ? <AlertCircle size={20}/> : <Check size={20}/>}
+          <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-[100] px-6 py-3 rounded-full shadow-2xl text-white font-bold flex items-center gap-3 animate-bounce text-sm ${notification.type === 'error' ? 'bg-red-600' : 'bg-teal-600'}`}>
+              {notification.type === 'error' ? <AlertTriangle size={20}/> : <Check size={20}/>}
               {notification.message}
           </div>
       )}
 
-      {/* AUTO FILL CONFIRM MODAL */}
+      {/* OTO PLANLAMA ONAY MODALI */}
       {showAutoFillConfirm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] no-print p-4">
-              <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2"><AlertTriangle className="text-orange-500" /> Dikkat</h3>
-                  <p className="text-gray-600 mb-6">
-                      Tüm ay için otomatik planlama yapılacak. Mevcut ayın tüm verileri silinip yeniden oluşturulacak.
+          <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[60] no-print p-4">
+              <div className="bg-white p-6 rounded-lg shadow-2xl max-w-md w-full border-t-4 border-purple-600">
+                  <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+                      <Sparkles className="text-purple-600" /> Otomatik Planlama
+                  </h3>
+                  <p className="text-gray-600 mb-6 font-medium">
+                      Bu işlem mevcut ayın tüm verilerini silip, kurallara uygun şekilde rastgele yeniden dağıtacaktır. Onaylıyor musunuz?
                   </p>
-                  <div className="flex justify-end gap-3 flex-col md:flex-row">
-                      <button onClick={() => setShowAutoFillConfirm(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">İptal</button>
-                      <button onClick={autoFillMonth} className="px-4 py-2 bg-purple-600 text-white hover:bg-purple-700 rounded shadow">Evet, Planla</button>
+                  <div className="flex justify-end gap-3">
+                      <button onClick={() => setShowAutoFillConfirm(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded font-bold">Vazgeç</button>
+                      <button onClick={autoFillMonth} className="px-6 py-2 bg-purple-600 text-white hover:bg-purple-700 rounded shadow font-bold">BAŞLAT</button>
                   </div>
               </div>
           </div>
       )}
 
-      {/* HEADER */}
-      <header className="bg-teal-700 text-white p-4 shadow-md no-print">
+      {/* HEADER (NAVBAR) */}
+      <header className="bg-gradient-to-r from-teal-700 to-teal-900 text-white p-3 shadow-lg no-print sticky top-0 z-40">
         <div className="container mx-auto">
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                    <Calendar size={28} />
+                    <div className="bg-white text-teal-800 p-2 rounded-lg">
+                        <Calendar size={24} />
+                    </div>
                     <div>
-                    <h1 className="text-xl md:text-2xl font-bold">Nöbet Planlama</h1>
-                    <p className="text-teal-200 text-xs md:text-sm">Hastane Acil Servis</p>
+                        <h1 className="text-lg md:text-xl font-black tracking-tight">ACİL NÖBET</h1>
+                        <p className="text-teal-200 text-[10px] md:text-xs font-medium tracking-widest">PERSONEL PLANLAMA SİSTEMİ</p>
                     </div>
                 </div>
 
                 {/* Mobile Menu Toggle */}
-                <button className="md:hidden p-2" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+                <button className="md:hidden p-2 hover:bg-teal-600 rounded" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
                     {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
 
                 {/* Desktop Nav */}
-                <div className="hidden md:flex gap-2">
-                    <button onClick={() => setViewMode('calendar')} className={`px-3 py-2 rounded flex items-center gap-2 ${viewMode === 'calendar' ? 'bg-white text-teal-800' : 'hover:bg-teal-600'}`}>
+                <div className="hidden md:flex gap-3">
+                    <button onClick={() => setViewMode('calendar')} className={`px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all ${viewMode === 'calendar' ? 'bg-white text-teal-900 shadow' : 'hover:bg-teal-600 text-teal-100'}`}>
                         <Calendar size={18} /> Takvim
                     </button>
-                    <button onClick={() => setViewMode('matrix')} className={`px-3 py-2 rounded flex items-center gap-2 ${viewMode === 'matrix' ? 'bg-white text-teal-800' : 'hover:bg-teal-600'}`}>
+                    <button onClick={() => setViewMode('matrix')} className={`px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all ${viewMode === 'matrix' ? 'bg-white text-teal-900 shadow' : 'hover:bg-teal-600 text-teal-100'}`}>
                         <FileSpreadsheet size={18} /> Çizelge
                     </button>
-                    <button onClick={() => setViewMode('staff')} className={`px-3 py-2 rounded flex items-center gap-2 ${viewMode === 'staff' ? 'bg-white text-teal-800' : 'hover:bg-teal-600'}`}>
+                    <button onClick={() => setViewMode('staff')} className={`px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all ${viewMode === 'staff' ? 'bg-white text-teal-900 shadow' : 'hover:bg-teal-600 text-teal-100'}`}>
                         <Users size={18} /> Personel
                     </button>
                 </div>
@@ -653,55 +742,55 @@ export default function App() {
 
             {/* Mobile Nav */}
             {isMobileMenuOpen && (
-                <div className="flex flex-col gap-2 mt-4 md:hidden pb-2 border-t border-teal-600 pt-2">
-                     <div className="flex items-center justify-between bg-teal-800 p-2 rounded-lg mb-2">
+                <div className="flex flex-col gap-2 mt-4 md:hidden pb-2 border-t border-teal-600 pt-2 animate-fadeIn">
+                     <div className="flex items-center justify-between bg-teal-800 p-3 rounded-lg mb-2">
                         <button onClick={() => changeMonth(-1)} className="p-1 hover:bg-teal-600 rounded"><ChevronLeft /></button>
                         <span className="font-bold text-lg">
                         {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
                         </span>
                         <button onClick={() => changeMonth(1)} className="p-1 hover:bg-teal-600 rounded"><ChevronRight /></button>
                     </div>
-                    <button onClick={() => { setViewMode('calendar'); setIsMobileMenuOpen(false); }} className={`p-3 rounded text-left ${viewMode === 'calendar' ? 'bg-white text-teal-800' : 'hover:bg-teal-600'}`}>Takvim</button>
-                    <button onClick={() => { setViewMode('matrix'); setIsMobileMenuOpen(false); }} className={`p-3 rounded text-left ${viewMode === 'matrix' ? 'bg-white text-teal-800' : 'hover:bg-teal-600'}`}>Çizelge</button>
-                    <button onClick={() => { setViewMode('staff'); setIsMobileMenuOpen(false); }} className={`p-3 rounded text-left ${viewMode === 'staff' ? 'bg-white text-teal-800' : 'hover:bg-teal-600'}`}>Personel</button>
+                    <button onClick={() => { setViewMode('calendar'); setIsMobileMenuOpen(false); }} className={`p-3 rounded font-bold text-left ${viewMode === 'calendar' ? 'bg-white text-teal-900' : 'text-white'}`}>Takvim Görünümü</button>
+                    <button onClick={() => { setViewMode('matrix'); setIsMobileMenuOpen(false); }} className={`p-3 rounded font-bold text-left ${viewMode === 'matrix' ? 'bg-white text-teal-900' : 'text-white'}`}>Çizelge Görünümü</button>
+                    <button onClick={() => { setViewMode('staff'); setIsMobileMenuOpen(false); }} className={`p-3 rounded font-bold text-left ${viewMode === 'staff' ? 'bg-white text-teal-900' : 'text-white'}`}>Personel İşlemleri</button>
                 </div>
             )}
 
-            {/* Desktop Month Selector (Hidden on mobile inside menu above) */}
-            <div className="hidden md:flex items-center justify-center gap-4 mt-2">
-                 <div className="flex items-center gap-4 bg-teal-800 p-1 px-4 rounded-full text-sm">
-                    <button onClick={() => changeMonth(-1)} className="hover:text-teal-300"><ChevronLeft size={20}/></button>
-                    <span className="font-bold min-w-[100px] text-center">
+            {/* Desktop Month Selector */}
+            <div className="hidden md:flex items-center justify-center gap-4 mt-1 absolute left-1/2 top-4 transform -translate-x-1/2">
+                 <div className="flex items-center gap-4 bg-teal-800/50 p-1 px-4 rounded-full text-sm border border-teal-600 backdrop-blur-sm">
+                    <button onClick={() => changeMonth(-1)} className="hover:text-white text-teal-200 transition-colors"><ChevronLeft size={20}/></button>
+                    <span className="font-bold min-w-[120px] text-center text-white">
                     {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
                     </span>
-                    <button onClick={() => changeMonth(1)} className="hover:text-teal-300"><ChevronRight size={20}/></button>
+                    <button onClick={() => changeMonth(1)} className="hover:text-white text-teal-200 transition-colors"><ChevronRight size={20}/></button>
                 </div>
             </div>
         </div>
       </header>
 
       {/* MAIN CONTENT */}
-      <main className="container mx-auto p-2 md:p-4">
+      <main className="container mx-auto p-2 md:p-6 pb-20">
         
         {/* Toolbar */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3 no-print">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 no-print bg-white p-3 rounded-lg shadow-sm border border-gray-200">
              <div className="w-full md:w-auto">
                 {viewMode === 'matrix' && (
-                    <button onClick={() => setShowAutoFillConfirm(true)} className="w-full md:w-auto bg-purple-600 text-white px-4 py-2 rounded shadow hover:bg-purple-700 flex items-center justify-center gap-2">
-                        <Sparkles size={18} /> Otomatik Planla
+                    <button onClick={() => setShowAutoFillConfirm(true)} className="w-full md:w-auto bg-purple-600 text-white px-5 py-2.5 rounded hover:bg-purple-700 flex items-center justify-center gap-2 font-bold shadow transition-transform active:scale-95">
+                        <Sparkles size={18} /> OTO PLANLA
                     </button>
                 )}
              </div>
             {viewMode === 'matrix' && (
-                <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-                    <button onClick={downloadAsJpg} className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 flex items-center justify-center gap-2">
-                        <ImageIcon size={18} /> JPG Kaydet
+                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    <button onClick={downloadAsJpg} className="bg-blue-600 text-white px-5 py-2.5 rounded hover:bg-blue-700 flex items-center justify-center gap-2 font-bold shadow transition-transform active:scale-95">
+                        <ImageIcon size={18} /> JPG İNDİR
                     </button>
-                    <button onClick={printDocument} className="bg-gray-700 text-white px-4 py-2 rounded shadow hover:bg-gray-800 flex items-center justify-center gap-2">
-                        <Printer size={18} /> Yazdır
+                    <button onClick={printDocument} className="bg-red-600 text-white px-5 py-2.5 rounded hover:bg-red-700 flex items-center justify-center gap-2 font-bold shadow transition-transform active:scale-95" title="Açılan pencerede Hedef kısmını 'PDF Olarak Kaydet' seçin">
+                        <FileText size={18} /> PDF KAYDET
                     </button>
-                    <button onClick={printDocument} className="bg-red-600 text-white px-4 py-2 rounded shadow hover:bg-red-700 flex items-center justify-center gap-2" title="Yazıcı hedefi olarak PDF seçin">
-                        <FileText size={18} /> PDF Olarak Kaydet
+                     <button onClick={printDocument} className="bg-gray-700 text-white px-5 py-2.5 rounded hover:bg-gray-800 flex items-center justify-center gap-2 font-bold shadow transition-transform active:scale-95">
+                        <Printer size={18} /> YAZDIR
                     </button>
                 </div>
             )}
@@ -709,13 +798,13 @@ export default function App() {
 
         {/* VIEW: CALENDAR */}
         {viewMode === 'calendar' && (
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-1 md:gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
                 {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map(day => (
-                    <div key={day} className="text-center font-bold text-gray-500 py-2 text-sm">{day}</div>
+                    <div key={day} className="text-center font-bold text-gray-400 py-2 text-xs uppercase tracking-wider">{day}</div>
                 ))}
                 
                 {Array.from({ length: (new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay() + 6) % 7 }).map((_, i) => (
-                    <div key={`empty-${i}`} className="bg-transparent h-20 md:h-32"></div>
+                    <div key={`empty-${i}`} className="bg-transparent h-24 md:h-36"></div>
                 ))}
 
                 {getDaysInMonth(currentDate).map(day => {
@@ -730,29 +819,29 @@ export default function App() {
                             key={day} 
                             onClick={() => setSelectedDay(day)}
                             className={`
-                                h-24 md:h-32 border rounded-lg p-1 md:p-2 cursor-pointer transition-all hover:shadow-md
-                                ${isWeekend ? 'bg-gray-50' : 'bg-white'}
-                                ${isFull ? 'border-green-300' : count > 0 ? 'border-orange-300' : 'border-gray-200'}
+                                h-28 md:h-40 border-2 rounded-xl p-2 cursor-pointer transition-all hover:shadow-lg transform hover:-translate-y-1 relative overflow-hidden group
+                                ${isWeekend ? 'bg-red-50 border-red-100' : 'bg-white border-gray-200'}
+                                ${isFull ? 'border-green-400 ring-1 ring-green-100' : ''}
                             `}
                         >
-                            <div className="flex justify-between items-start">
-                                <span className={`text-base md:text-lg font-bold ${isWeekend ? 'text-red-500' : 'text-gray-700'}`}>{day}</span>
+                             <div className="flex justify-between items-start mb-2">
+                                <span className={`text-xl font-bold ${isWeekend ? 'text-red-500' : 'text-gray-700'}`}>{day}</span>
                                 {count > 0 && (
-                                    <span className={`text-[10px] md:text-xs px-1.5 py-0.5 rounded-full ${isFull ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+                                    <span className={`text-[10px] px-2 py-1 rounded-full font-bold shadow-sm ${isFull ? 'bg-green-500 text-white' : 'bg-orange-100 text-orange-600'}`}>
                                         {count}/18
                                     </span>
                                 )}
                             </div>
                             
-                            <div className="mt-1 md:mt-2 space-y-1 text-[10px] md:text-xs text-gray-500">
+                            <div className="space-y-1 text-xs text-gray-500">
                                 {count === 0 ? (
-                                    <div className="h-full flex items-center justify-center text-gray-300 pt-2">
-                                        <Plus size={20} />
+                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="bg-teal-100 text-teal-700 p-2 rounded-full"><Plus size={24}/></div>
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="flex justify-between"><span>24s:</span> <b>{Object.keys(dayAssignments).filter(k => DUTY_SLOTS.find(s=>s.id===k).type === '24').length}/14</b></div>
-                                        <div className="flex justify-between"><span>Kısa:</span> <b>{Object.keys(dayAssignments).filter(k => DUTY_SLOTS.find(s=>s.id===k).type !== '24').length}/4</b></div>
+                                        <div className="flex justify-between items-center bg-blue-50 px-1 rounded"><span>24s:</span> <b className="text-blue-700">{Object.keys(dayAssignments).filter(k => DUTY_SLOTS.find(s=>s.id===k).type === '24').length}</b></div>
+                                        <div className="flex justify-between items-center bg-orange-50 px-1 rounded"><span>Kısa:</span> <b className="text-orange-700">{Object.keys(dayAssignments).filter(k => DUTY_SLOTS.find(s=>s.id===k).type !== '24').length}</b></div>
                                     </>
                                 )}
                             </div>
@@ -791,6 +880,7 @@ export default function App() {
             }
             body {
                 background: white;
+                color: black;
             }
             main {
                 margin: 0;
@@ -804,26 +894,28 @@ export default function App() {
             table {
                 width: 100% !important;
                 border-collapse: collapse;
-                font-size: 8px !important;
+                font-size: 9px !important;
             }
             th, td {
                 border: 1px solid #000 !important;
-                padding: 1px !important;
+                padding: 2px !important;
                 color: black !important;
             }
             .sticky {
                 position: static !important;
             }
-            .bg-blue-100, .bg-orange-100, .bg-green-100 {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-            /* Mobilde gizlenen bazı şeyler baskıda çıksın */
-            .hidden.md\\:block {
-                display: block !important;
-            }
+            /* Baskıda renkleri belirginleştir */
+            .bg-blue-200 { background-color: #dbeafe !important; -webkit-print-color-adjust: exact; }
+            .bg-orange-200 { background-color: #ffedd5 !important; -webkit-print-color-adjust: exact; }
+            .bg-green-200 { background-color: #dcfce7 !important; -webkit-print-color-adjust: exact; }
+            .bg-red-100 { background-color: #fee2e2 !important; -webkit-print-color-adjust: exact; }
+            
+            /* Sayfa Kesilmelerini Yönet */
+            tr { page-break-inside: avoid; }
         }
       `}</style>
     </div>
   );
 }
+
+
