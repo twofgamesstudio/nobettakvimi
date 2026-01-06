@@ -398,7 +398,24 @@ export default function App() {
 
   const captureJpg = () => {
       if (!matrixRef.current || !window.html2canvas) return;
-      window.html2canvas(matrixRef.current, { scale: 2 }).then(canvas => {
+
+      // Geçici olarak taşmayı görünür yapalım
+      const originalOverflow = matrixRef.current.style.overflow;
+      matrixRef.current.style.overflow = 'visible';
+
+      window.html2canvas(matrixRef.current, { 
+          scale: 2,
+          useCORS: true,
+          scrollX: 0,
+          scrollY: 0, // Yüksekliği sıfırla ki en tepeyi alsın
+          width: matrixRef.current.scrollWidth, // Tam genişlik
+          height: matrixRef.current.scrollHeight, // Tam yükseklik
+          windowWidth: matrixRef.current.scrollWidth,
+          windowHeight: matrixRef.current.scrollHeight
+      }).then(canvas => {
+          // Stili geri al
+          matrixRef.current.style.overflow = originalOverflow;
+          
           const image = canvas.toDataURL("image/jpeg", 1.0);
           const link = document.createElement("a");
           link.href = image;
@@ -406,6 +423,7 @@ export default function App() {
           link.click();
           showNotification("JPG İndirildi.", "success");
       }).catch(err => {
+          matrixRef.current.style.overflow = originalOverflow;
           console.error(err);
           showNotification("Görüntü oluşturulamadı.", "error");
       });
