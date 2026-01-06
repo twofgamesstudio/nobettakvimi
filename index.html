@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acil Servis Nöbet Planlama</title>
+    <title>Akıllı Acil Servis Nöbet Planlama</title>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -38,6 +38,16 @@
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #999; }
+        
+        /* AI Animation */
+        .ai-glow {
+            animation: pulse-glow 2s infinite;
+        }
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(147, 51, 234, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0); }
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -48,7 +58,7 @@
     </div>
 
     <script type="text/babel">
-        // --- GÜVENLİ ICON SETİ (Çökme Riskini Önler) ---
+        // --- ICON COMPONENT ---
         const IconBase = ({ children, size = 24, className = "" }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
                 {children}
@@ -58,10 +68,8 @@
         const Icons = {
             Calendar: (p) => <IconBase {...p}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></IconBase>,
             Users: (p) => <IconBase {...p}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></IconBase>,
-            Printer: (p) => <IconBase {...p}><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></IconBase>,
             Trash2: (p) => <IconBase {...p}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></IconBase>,
             Plus: (p) => <IconBase {...p}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></IconBase>,
-            FileSpreadsheet: (p) => <IconBase {...p}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M8 13h2"></path><path d="M8 17h2"></path><path d="M14 13h2"></path><path d="M14 17h2"></path></IconBase>,
             ChevronLeft: (p) => <IconBase {...p}><polyline points="15 18 9 12 15 6"></polyline></IconBase>,
             ChevronRight: (p) => <IconBase {...p}><polyline points="9 18 15 12 9 6"></polyline></IconBase>,
             X: (p) => <IconBase {...p}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></IconBase>,
@@ -71,14 +79,15 @@
             Menu: (p) => <IconBase {...p}><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="20" y2="18"></line></IconBase>,
             Image: (p) => <IconBase {...p}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></IconBase>,
             FileText: (p) => <IconBase {...p}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></IconBase>,
-            Info: (p) => <IconBase {...p}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></IconBase>,
             Edit2: (p) => <IconBase {...p}><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></IconBase>,
-            Save: (p) => <IconBase {...p}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></IconBase>
+            Save: (p) => <IconBase {...p}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></IconBase>,
+            Bot: (p) => <IconBase {...p}><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></IconBase>,
+            Info: (p) => <IconBase {...p}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></IconBase>
         };
 
         const { useState, useEffect, useRef } = React;
 
-        // --- BAŞLANGIÇ VERİLERİ ---
+        // --- VERİLER ---
         const INITIAL_STAFF = [
             { id: 1, name: "ABDURRAHMAN ŞAHİN", group: "A" }, { id: 2, name: "AHMET ALTINTAŞ", group: "A" },
             { id: 3, name: "AHMET KAYA", group: "A" }, { id: 4, name: "ALEYNA NUR ÇELİK", group: "A" },
@@ -107,8 +116,6 @@
             { id: 49, name: "VURAL GÜLEÇ", group: "A" }, { id: 50, name: "YARENGÜZEL AŞÇI", group: "A" },
             { id: 51, name: "YASEMİN ERDEM", group: "A" }, { id: 52, name: "YASİN KİRAZ", group: "A" },
             { id: 53, name: "YUNUS EMRE YILDIZ", group: "A" }, { id: 54, name: "ZEHRA TEKBIÇAK", group: "A" },
-            { id: 64, name: "YENİ PERSONEL EKLE", group: "A" }, 
-            // GRUP B
             { id: 55, name: "PINAR İLÇİN", group: "B" }, { id: 56, name: "ÖZLEM BOZKURT", group: "B" },
             { id: 57, name: "NURCAN ÇİFTÇİ", group: "B" }, { id: 58, name: "MERVE POYRAZ", group: "B" },
             { id: 59, name: "CANSU ÖZEN", group: "B" }, { id: 60, name: "BURCU KIYAK", group: "B" },
@@ -128,6 +135,123 @@
         ];
 
         const MONTHS = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+
+        // --- YARDIMCI BİLEŞEN: AI MODAL ---
+        const AIGeneratorModal = ({ isOpen, onClose, onGenerate, staffList }) => {
+            const [prompt, setPrompt] = useState("");
+            const [isThinking, setIsThinking] = useState(false);
+            const [analysis, setAnalysis] = useState([]);
+
+            if (!isOpen) return null;
+
+            const handleGenerateClick = () => {
+                setIsThinking(true);
+                
+                // Yapay zeka simülasyonu
+                setTimeout(() => {
+                    const lines = prompt.split('\n');
+                    const detectedConstraints = [];
+                    
+                    if (prompt.trim().length > 0) {
+                        // Basit Doğal Dil İşleme (Simülasyonu)
+                        lines.forEach(line => {
+                            const upperLine = line.toUpperCase();
+                            staffList.forEach(staff => {
+                                if (upperLine.includes(staff.name)) {
+                                    if (upperLine.includes('İZİN') || upperLine.includes('YOK') || upperLine.includes('ÇALIŞMASIN')) {
+                                        // Tarihleri bul
+                                        const numbers = upperLine.match(/\d+/g);
+                                        if (numbers) {
+                                            detectedConstraints.push({
+                                                type: 'blocked_date',
+                                                staffId: staff.id,
+                                                staffName: staff.name,
+                                                days: numbers.map(n => parseInt(n))
+                                            });
+                                        } else if (upperLine.includes('HAFTASONU')) {
+                                            detectedConstraints.push({
+                                                type: 'no_weekend',
+                                                staffId: staff.id,
+                                                staffName: staff.name
+                                            });
+                                        }
+                                    }
+                                }
+                            });
+                        });
+                        setAnalysis(detectedConstraints);
+                    } else {
+                        // Boş prompt ise boş analiz
+                        setAnalysis([]);
+                    }
+                    
+                    setTimeout(() => {
+                        onGenerate(detectedConstraints);
+                        setIsThinking(false);
+                        setPrompt("");
+                        setAnalysis([]);
+                        onClose();
+                    }, 1000); 
+                }, 1000); 
+            };
+
+            return (
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[70] p-4 no-print backdrop-blur-sm">
+                    <div className={`bg-white rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-200 transition-all transform ${isThinking ? 'scale-105 ai-glow' : 'scale-100'}`}>
+                        <div className="bg-gradient-to-r from-violet-600 to-purple-600 p-6 rounded-t-2xl flex justify-between items-center text-white">
+                            <h3 className="text-xl font-bold flex items-center gap-2">
+                                <Icons.Bot size={28} /> AI Asistan
+                            </h3>
+                            {!isThinking && <button onClick={onClose} className="hover:bg-white/20 p-1 rounded-full"><Icons.X /></button>}
+                        </div>
+                        
+                        <div className="p-6">
+                            {isThinking ? (
+                                <div className="flex flex-col items-center justify-center py-10 space-y-4">
+                                    <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+                                    <p className="text-purple-800 font-bold text-lg animate-pulse">
+                                        {prompt.trim() ? 'İstekler Analiz Ediliyor...' : 'Otomatik Liste Hazırlanıyor...'}
+                                    </p>
+                                    <div className="text-sm text-gray-500">
+                                        {prompt.trim() ? (analysis.length > 0 ? `${analysis.length} adet kural tespit edildi.` : "Kurallar taranıyor...") : "Rastgele dağıtım yapılıyor..."}
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <p className="text-gray-600 mb-4">
+                                        Özel istekleri aşağıya yazın veya hiçbir şey yazmadan doğrudan butona basarak otomatik dağıtım yapın.
+                                    </p>
+                                    <div className="bg-purple-50 p-4 rounded-lg mb-4 border border-purple-100">
+                                        <p className="text-xs font-bold text-purple-800 mb-2 uppercase">Örnek Kullanım:</p>
+                                        <ul className="text-sm text-purple-700 space-y-1 list-disc list-inside">
+                                            <li>Ahmet Kaya ayın 5, 12 ve 20'sinde izinli olsun.</li>
+                                            <li>Ayşe Çetin haftasonu nöbet yazılmasın.</li>
+                                            <li>(Boş Bırakırsanız) Rastgele adil dağıtım yapılır.</li>
+                                        </ul>
+                                    </div>
+                                    <textarea 
+                                        value={prompt}
+                                        onChange={(e) => setPrompt(e.target.value)}
+                                        className="w-full h-40 border border-gray-300 rounded-lg p-4 focus:ring-4 focus:ring-purple-200 outline-none text-gray-700 resize-none shadow-inner"
+                                        placeholder="İstekleri buraya yazın..."
+                                    ></textarea>
+                                    
+                                    <div className="flex justify-end gap-3 mt-6">
+                                        <button onClick={onClose} className="px-5 py-2.5 bg-gray-100 text-gray-600 rounded-lg font-bold hover:bg-gray-200 transition-colors">Vazgeç</button>
+                                        <button 
+                                            onClick={handleGenerateClick} 
+                                            className="px-6 py-2.5 rounded-lg font-bold text-white shadow-lg flex items-center gap-2 transition-all bg-purple-600 hover:bg-purple-700 hover:scale-105"
+                                        >
+                                            <Icons.Sparkles size={18}/> {prompt.trim() ? 'KURALLARA GÖRE OLUŞTUR' : 'OTOMATİK OLUŞTUR'}
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
 
         // --- PERSONEL YÖNETİMİ BİLEŞENİ ---
         const StaffManager = ({ staffList, setStaffList, showNotification }) => {
@@ -237,7 +361,7 @@
             const [selectedDay, setSelectedDay] = useState(null);
             const [viewMode, setViewMode] = useState('matrix');
             const [notification, setNotification] = useState(null);
-            const [showAutoFillConfirm, setShowAutoFillConfirm] = useState(false);
+            const [showAIModal, setShowAIModal] = useState(false);
             const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
             const matrixRef = useRef(null);
 
@@ -257,6 +381,7 @@
                 return `${year}-${(month + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
             };
 
+            // İstatistikleri hesapla
             const calculateStats = () => {
                 const stats = {};
                 staffList.forEach(s => stats[s.id] = { cgms: 0, tcs: 0, s16: 0, s8: 0, cts: 0, pzr: 0, hs: 0 });
@@ -300,61 +425,90 @@
                 });
             };
 
-            const autoFillMonth = () => {
+            // --- AI DESTEKLİ OTOMATİK DOLDURMA ---
+            const generateSchedule = (constraints = []) => {
                 const year = currentDate.getFullYear();
                 const month = currentDate.getMonth();
                 const days = getDaysInMonth(currentDate);
                 const newAssignments = { ...assignments };
+                
+                // Mevcut ayı temizle
                 const prefix = formatDateKey(year, month, 1).substring(0, 7);
                 Object.keys(newAssignments).forEach(k => { if(k.startsWith(prefix)) delete newAssignments[k]; });
                 
+                // Geçici istatistikler (adil dağıtım için)
                 const tempStats = {};
                 staffList.forEach(s => tempStats[s.id] = 0);
 
+                // Kısıtlamaları yapılandır
+                const blockedDays = {}; // staffId: [day1, day2...]
+                const noWeekends = new Set(); // staffIds
+
+                constraints.forEach(c => {
+                    if (c.type === 'blocked_date') {
+                        if (!blockedDays[c.staffId]) blockedDays[c.staffId] = [];
+                        blockedDays[c.staffId].push(...c.days);
+                    } else if (c.type === 'no_weekend') {
+                        noWeekends.add(c.staffId);
+                    }
+                });
+
+                // Dağıtım Döngüsü
                 days.forEach(day => {
+                    const dateObj = new Date(year, month, day);
+                    const dayOfWeek = dateObj.getDay(); // 0: Pzr, 6: Cts
+                    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
                     const dateKey = formatDateKey(year, month, day);
                     const dayAssignments = {};
-                    const usedStaffIds = new Set();
+                    const workingToday = new Set();
+
                     DUTY_SLOTS.forEach(slot => {
+                        // Aday havuzunu belirle (Grup A sadece 24 saatliklere)
                         let candidates = [];
-                        if (slot.type === '24') candidates = staffList.filter(s => s.group === 'A' && !usedStaffIds.has(s.id));
-                        else candidates = staffList.filter(s => !usedStaffIds.has(s.id));
-                        
+                        if (slot.type === '24') {
+                            candidates = staffList.filter(s => s.group === 'A');
+                        } else {
+                            candidates = staffList;
+                        }
+
+                        // Filtreleme 1: Bugün zaten çalışıyor mu?
+                        candidates = candidates.filter(s => !workingToday.has(s.id));
+
+                        // Filtreleme 2: AI Kısıtlamaları (Tarih Engeli)
+                        candidates = candidates.filter(s => {
+                            if (blockedDays[s.id] && blockedDays[s.id].includes(day)) return false;
+                            return true;
+                        });
+
+                        // Filtreleme 3: AI Kısıtlamaları (Haftasonu Engeli)
+                        if (isWeekend) {
+                            candidates = candidates.filter(s => !noWeekends.has(s.id));
+                        }
+
+                        // Aday varsa seç
                         if (candidates.length > 0) {
+                            // En az nöbeti olana öncelik ver (Adalet)
                             candidates.sort((a, b) => tempStats[a.id] - tempStats[b.id]);
-                            const chosen = candidates[Math.floor(Math.random() * Math.min(5, candidates.length))];
+                            
+                            // Rastgelelik ekle (ilk 5 kişiden biri)
+                            const poolSize = Math.min(5, candidates.length);
+                            const chosenIndex = Math.floor(Math.random() * poolSize);
+                            const chosen = candidates[chosenIndex];
+
                             dayAssignments[slot.id] = chosen.id;
-                            usedStaffIds.add(chosen.id);
+                            workingToday.add(chosen.id);
                             tempStats[chosen.id] += 1;
                         }
                     });
                     newAssignments[dateKey] = dayAssignments;
                 });
+
                 setAssignments(newAssignments);
-                setShowAutoFillConfirm(false);
-                showNotification("Dağıtım tamamlandı.", "success");
-            };
-
-            const autoFillDay = () => {
-                if (!selectedDay) return;
-                const dateKey = formatDateKey(currentDate.getFullYear(), currentDate.getMonth(), selectedDay);
-                const currentDayAssignments = { ...assignments[dateKey] } || {};
-                const usedStaffIds = new Set(Object.values(currentDayAssignments).map(id => parseInt(id)));
-                const availableA = staffList.filter(s => s.group === 'A' && !usedStaffIds.has(s.id));
-                const availableB = staffList.filter(s => s.group === 'B' && !usedStaffIds.has(s.id));
-                const poolA = [...availableA].sort(() => Math.random() - 0.5);
-                const poolB = [...availableB].sort(() => Math.random() - 0.5);
-                const newAssigns = { ...currentDayAssignments };
-
-                DUTY_SLOTS.forEach(slot => {
-                    if (!newAssigns[slot.id]) {
-                        let candidate = null;
-                        if (slot.type === '24') { if (poolA.length > 0) candidate = poolA.pop(); }
-                        else { if (poolB.length > 0) candidate = poolB.pop(); else if (poolA.length > 0) candidate = poolA.pop(); }
-                        if (candidate) newAssigns[slot.id] = candidate.id;
-                    }
-                });
-                setAssignments(prev => ({ ...prev, [dateKey]: newAssigns }));
+                if (constraints.length > 0) {
+                    showNotification(`Liste ${constraints.length} özel kural dikkate alınarak oluşturuldu.`, "success");
+                } else {
+                    showNotification("Liste rastgele ve adil şekilde otomatik oluşturuldu.", "success");
+                }
             };
 
             const clearDay = () => {
@@ -404,26 +558,21 @@
 
             return (
                 <div className="pb-20">
-                    {notification && <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[60] px-6 py-3 rounded-full shadow-2xl text-white font-bold flex items-center gap-2 animate-bounce ${notification.type==='error'?'bg-red-600':'bg-teal-600'}`}>{notification.type==='error'?<Icons.AlertTriangle size={20}/>:<Icons.Check size={20}/>}{notification.message}</div>}
+                    {notification && <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[80] px-6 py-3 rounded-full shadow-2xl text-white font-bold flex items-center gap-2 animate-bounce ${notification.type==='error'?'bg-red-600':'bg-teal-600'}`}>{notification.type==='error'?<Icons.AlertTriangle size={20}/>:<Icons.Check size={20}/>}{notification.message}</div>}
                     
-                    {showAutoFillConfirm && (
-                        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4 no-print">
-                            <div className="bg-white p-6 rounded-lg shadow-2xl max-w-md w-full border-t-4 border-purple-600">
-                                <h3 className="text-xl font-bold mb-2 flex items-center gap-2"><Icons.Sparkles className="text-purple-600"/> Otomatik Dağıt?</h3>
-                                <p className="text-gray-600 mb-6 font-medium">Mevcut ayın tüm verileri silinip yeniden dağıtılacak.</p>
-                                <div className="flex justify-end gap-3">
-                                    <button onClick={()=>setShowAutoFillConfirm(false)} className="px-4 py-2 bg-gray-200 rounded font-bold hover:bg-gray-300">İptal</button>
-                                    <button onClick={autoFillMonth} className="px-6 py-2 bg-purple-600 text-white rounded font-bold hover:bg-purple-700 shadow">Onayla</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    {/* AI MODAL */}
+                    <AIGeneratorModal 
+                        isOpen={showAIModal} 
+                        onClose={() => setShowAIModal(false)} 
+                        onGenerate={generateSchedule}
+                        staffList={staffList}
+                    />
 
                     <header className="bg-gradient-to-r from-teal-700 to-teal-900 text-white p-4 shadow-lg sticky top-0 z-40 no-print">
                         <div className="container mx-auto flex justify-between items-center">
                             <div className="flex items-center gap-3">
                                 <div className="bg-white/10 p-2 rounded"><Icons.Calendar size={24} /></div>
-                                <div><h1 className="font-black text-xl tracking-tight">ACİL NÖBET</h1></div>
+                                <div><h1 className="font-black text-xl tracking-tight">ACİL NÖBET SİSTEMİ</h1></div>
                             </div>
                             <div className="hidden md:flex gap-3">
                                 <button onClick={()=>setViewMode('calendar')} className={`px-4 py-2 rounded-lg font-bold transition-all ${viewMode==='calendar'?'bg-white text-teal-900 shadow':'hover:bg-teal-600 text-teal-50'}`}>Takvim</button>
@@ -450,9 +599,14 @@
                             </div>
                             {viewMode==='matrix' && (
                                 <div className="flex flex-wrap gap-2 justify-center w-full md:w-auto">
-                                    <button onClick={()=>setShowAutoFillConfirm(true)} className="px-4 py-2.5 bg-purple-600 text-white rounded font-bold shadow hover:bg-purple-700 flex items-center gap-2"><Icons.Sparkles size={18}/> OTO PLANLA</button>
-                                    <button onClick={downloadAsJpg} className="px-4 py-2.5 bg-blue-600 text-white rounded font-bold shadow hover:bg-blue-700 flex items-center gap-2"><Icons.Image size={18}/> JPG İNDİR</button>
-                                    <button onClick={()=>window.print()} className="px-4 py-2.5 bg-red-600 text-white rounded font-bold shadow hover:bg-red-700 flex items-center gap-2"><Icons.FileText size={18}/> PDF / YAZDIR</button>
+                                    <button 
+                                        onClick={()=>setShowAIModal(true)} 
+                                        className="px-4 py-2.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded font-bold shadow hover:from-violet-700 hover:to-purple-700 flex items-center gap-2 transform hover:scale-105 transition-all"
+                                    >
+                                        <Icons.Bot size={20}/> AI OTOMATİK OLUŞTUR
+                                    </button>
+                                    <button onClick={downloadAsJpg} className="px-4 py-2.5 bg-blue-600 text-white rounded font-bold shadow hover:bg-blue-700 flex items-center gap-2"><Icons.Image size={18}/> JPG</button>
+                                    <button onClick={()=>window.print()} className="px-4 py-2.5 bg-red-600 text-white rounded font-bold shadow hover:bg-red-700 flex items-center gap-2"><Icons.FileText size={18}/> PDF</button>
                                 </div>
                             )}
                         </div>
@@ -586,23 +740,6 @@
                                 </div>
                                 <div className="p-3 border-t bg-gray-50 flex justify-between rounded-b-xl">
                                     <button onClick={clearDay} className="text-red-600 font-bold flex items-center gap-1 hover:bg-red-50 px-3 py-1 rounded"><Icons.Trash2 size={18}/> TEMİZLE</button>
-                                    <button onClick={()=>{
-                                        const k = formatDateKey(currentDate.getFullYear(), currentDate.getMonth(), selectedDay);
-                                        const dayData = {...(assignments[k]||{})};
-                                        const busy = new Set(Object.values(dayData).map(v=>parseInt(v)));
-                                        const poolA = staffList.filter(s=>s.group==='A' && !busy.has(s.id)).sort(()=>Math.random()-0.5);
-                                        const poolB = staffList.filter(s=>s.group==='B' && !busy.has(s.id)).sort(()=>Math.random()-0.5);
-                                        DUTY_SLOTS.forEach(s=>{
-                                            if(!dayData[s.id]) {
-                                                if(s.type==='24' && poolA.length) dayData[s.id]=poolA.pop().id;
-                                                else if(s.type!=='24') {
-                                                    if(poolB.length) dayData[s.id]=poolB.pop().id;
-                                                    else if(poolA.length) dayData[s.id]=poolA.pop().id;
-                                                }
-                                            }
-                                        });
-                                        setAssignments({...assignments, [k]: dayData});
-                                    }} className="bg-purple-600 text-white px-4 py-2 rounded font-bold flex items-center gap-2 hover:bg-purple-700 shadow"><Icons.Sparkles size={18}/> RASTGELE DOLDUR</button>
                                 </div>
                             </div>
                         </div>
