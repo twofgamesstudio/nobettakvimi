@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Calendar, Users, Printer, Trash2, Plus, FileSpreadsheet, ChevronLeft, ChevronRight, X, Sparkles, Check, AlertTriangle, Menu, Image as ImageIcon, FileText, Download, Save } from 'lucide-react';
+import { Calendar, Users, Printer, Trash2, Plus, FileSpreadsheet, ChevronLeft, ChevronRight, X, Sparkles, Check, AlertTriangle, Menu, Image as ImageIcon, FileText, Download, Save, Info } from 'lucide-react';
 
-// --- SABİT VERİLER (PERSONEL LİSTESİ) ---
+// --- SABİT VERİLER ---
 
 const INITIAL_STAFF = [
   // GRUP A (24 Saat tutabilenler - 55 Kişi)
@@ -237,18 +237,18 @@ export default function App() {
     setCurrentDate(newDate);
   };
 
-  // --- İSTATİSTİK HESAPLAMA MOTORU ---
+  // --- İSTATİSTİK HESAPLAMA MOTORU (DÜZELTİLDİ) ---
   const calculateStats = () => {
     const stats = {};
     staffList.forEach(s => {
         stats[s.id] = { 
             cgms: 0, // ÇGMS: Çalışılan Gün Miktarı Sayısı (Nöbet Sayısı)
-            tcs: 0, // TÇS: Toplam Çalışma Saati
-            s16: 0, // 16 Saatlik Nöbet Sayısı
-            s8: 0, // 8 Saatlik Nöbet Sayısı
-            cts: 0, // Cumartesi Sayısı
-            pzr: 0, // Pazar Sayısı
-            hs: 0 // Toplam Haftasonu
+            tcs: 0,  // TÇS: Toplam Çalışma Saati
+            s16: 0,  // 16
+            s8: 0,   // 8
+            cts: 0,  // Cts
+            pzr: 0,  // Pzr
+            hs: 0    // HS
         }
     });
 
@@ -269,17 +269,17 @@ export default function App() {
           if (staffId && stats[staffId] && slotDef) {
             const duration = parseInt(slotDef.type);
             
-            stats[staffId].cgms += 1;
-            stats[staffId].tcs += duration;
+            stats[staffId].cgms += 1; // Nöbet sayısı artır
+            stats[staffId].tcs += duration; // Saati ekle
             
             if (duration === 16) stats[staffId].s16 += 1;
             if (duration === 8) stats[staffId].s8 += 1;
 
-            if (dayOfWeek === 6) {
+            if (dayOfWeek === 6) { // Cumartesi
                  stats[staffId].cts += 1;
                  stats[staffId].hs += 1;
             }
-            if (dayOfWeek === 0) {
+            if (dayOfWeek === 0) { // Pazar
                  stats[staffId].pzr += 1;
                  stats[staffId].hs += 1;
             }
@@ -300,7 +300,6 @@ export default function App() {
     
     setAssignments(prev => {
       const dayData = prev[dateKey] || {};
-      // Çakışma kontrolü
       const existingSlot = Object.keys(dayData).find(key => dayData[key] == staffId);
       if (existingSlot && existingSlot !== slotId && staffId !== "") {
         const staffName = staffList.find(s=>s.id == staffId)?.name;
@@ -319,7 +318,6 @@ export default function App() {
     const days = getDaysInMonth(currentDate);
     
     const newAssignments = { ...assignments };
-    // Mevcut ayın verilerini temizle
     const prefix = `${year}-${(month + 1).toString().padStart(2, '0')}`;
     Object.keys(newAssignments).forEach(k => {
         if(k.startsWith(prefix)) delete newAssignments[k];
@@ -328,7 +326,6 @@ export default function App() {
     const tempStats = {};
     staffList.forEach(s => tempStats[s.id] = 0);
 
-    // Basit dağıtım algoritması
     days.forEach(day => {
         const dateKey = formatDateKey(year, month, day);
         const dayAssignments = {};
@@ -343,10 +340,7 @@ export default function App() {
             }
 
             if (candidates.length > 0) {
-                // En az nöbeti olana öncelik ver
                 candidates.sort((a, b) => tempStats[a.id] - tempStats[b.id]);
-                
-                // İlk 5 adaydan rastgele seç (deterministik olmasın)
                 const poolSize = Math.min(candidates.length, 5);
                 const chosenIndex = Math.floor(Math.random() * poolSize);
                 const chosenStaff = candidates[chosenIndex];
@@ -414,18 +408,18 @@ export default function App() {
     window.print();
   };
 
-  // JPG İNDİRME (TAM EKRAN + SCROLL FIX)
+  // JPG İNDİRME (TAM SCROLL ALMA)
   const downloadAsJpg = async () => {
-      showNotification("Görüntü oluşturuluyor, lütfen bekleyin...", "info");
+      showNotification("JPG hazırlanıyor, bekleyin...", "info");
       
-      // Dinamik Script Yükleme (Offline Safe)
+      // Kütüphaneyi dinamik olarak CDN'den yükle (Build hatasını önler)
       if (!window.html2canvas) {
           try {
               const script = document.createElement('script');
               script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-              script.crossOrigin = "anonymous"; // CORS fix
+              script.crossOrigin = "anonymous"; 
               script.onload = () => captureJpg();
-              script.onerror = () => showNotification("JPG modülü yüklenemedi. İnternet bağlantınızı kontrol edin.", "error");
+              script.onerror = () => showNotification("JPG için internet gerekli.", "error");
               document.body.appendChild(script);
           } catch (e) {
               showNotification("Hata oluştu.", "error");
@@ -439,20 +433,17 @@ export default function App() {
       if (!matrixRef.current || !window.html2canvas) return;
 
       const element = matrixRef.current;
-      
-      // Geçici stil değişiklikleri (Scroll'u aç, tam boyutu göster)
       const originalOverflow = element.style.overflow;
       const originalHeight = element.style.height;
       
-      // Önemli: position relative/absolute çakışmalarını önlemek için
-      // görünürlüğü zorla ve genişliği sabitle
+      // Tüm listeyi görünür yap (Scroll'u kaldır)
       element.style.overflow = 'visible'; 
       element.style.height = 'auto';
       element.style.width = 'fit-content';
       element.style.minWidth = '100%';
 
       window.html2canvas(element, { 
-          scale: 2, // Yüksek kalite
+          scale: 2, 
           useCORS: true,
           windowWidth: element.scrollWidth + 50, 
           windowHeight: element.scrollHeight + 50,
@@ -460,7 +451,7 @@ export default function App() {
           scrollY: 0,
           backgroundColor: '#ffffff'
       }).then(canvas => {
-          // Stilleri geri al
+          // Stilleri eski haline getir
           element.style.overflow = originalOverflow;
           element.style.height = originalHeight;
           element.style.width = 'auto';
@@ -471,14 +462,13 @@ export default function App() {
           link.href = image;
           link.download = `Nobet_Listesi_${MONTHS[currentDate.getMonth()]}_${currentDate.getFullYear()}.jpg`;
           link.click();
-          showNotification("JPG başarıyla indirildi.", "success");
+          showNotification("JPG indirildi.", "success");
       }).catch(err => {
-          // Hata olsa bile stilleri düzelt
           element.style.overflow = originalOverflow;
           element.style.height = originalHeight;
           element.style.width = 'auto';
           console.error(err);
-          showNotification("JPG oluşturulurken hata oluştu.", "error");
+          showNotification("JPG hatası.", "error");
       });
   };
 
@@ -488,7 +478,6 @@ export default function App() {
     if (!selectedDay) return null;
     const dateKey = formatDateKey(currentDate.getFullYear(), currentDate.getMonth(), selectedDay);
     const dayData = assignments[dateKey] || {};
-
     const assignedCount = Object.keys(dayData).length;
     const isFull = assignedCount === 18;
 
@@ -522,7 +511,6 @@ export default function App() {
                     <span className="font-bold text-gray-700 text-sm">{slot.label}</span>
                     <span className={`${badgeColor} text-white text-[10px] px-2 py-0.5 rounded-full font-bold`}>{slot.type} Saat</span>
                   </div>
-                  
                   <select 
                     className="w-full p-2 border rounded bg-white text-sm focus:ring-2 focus:ring-teal-500 outline-none"
                     value={assignedStaffId || ""}
@@ -586,7 +574,7 @@ export default function App() {
                     </th>
                   );
               })}
-              {/* İSTATİSTİK SÜTUNLARI - ÖRNEK PLANA GÖRE */}
+              {/* İSTATİSTİK SÜTUNLARI */}
               <th className="border border-gray-400 p-1 bg-gray-100 text-center w-8" title="Çalışılan Gün Miktarı Sayısı">ÇGMS</th>
               <th className="border border-gray-400 p-1 bg-yellow-50 text-center w-8" title="Toplam Çalışma Saati">TÇS</th>
               <th className="border border-gray-400 p-1 bg-gray-50 text-center w-6" title="16 Saatlik Nöbet">16</th>
@@ -629,7 +617,6 @@ export default function App() {
                     );
                   })}
 
-                  {/* İSTATİSTİK HÜCRELERİ */}
                   <td className="border border-gray-400 p-1 text-center text-gray-800">{staffStats.cgms}</td>
                   <td className="border border-gray-400 p-1 text-center font-bold bg-yellow-50">{staffStats.tcs}</td>
                   <td className="border border-gray-400 p-1 text-center text-gray-600">{staffStats.s16}</td>
@@ -643,19 +630,20 @@ export default function App() {
           </tbody>
         </table>
         
-        {/* ALT BİLGİ & İMZA & RENKLER */}
-        <div className="mt-6 flex flex-wrap gap-4 text-xs justify-between print:mt-4">
-             <div className="border border-gray-400 p-2 rounded bg-white min-w-[150px]">
-                <h4 className="font-bold border-b border-gray-300 mb-1">Nöbet Dağılımı</h4>
-                <div className="grid grid-cols-2 gap-x-4">
-                    <p>Sarı Alan: 4</p> <p>Kadın Gözlem: 3</p>
-                    <p>Erkek Gözlem: 3</p> <p>Triaj: 2</p>
-                    <p>Yeşil Alan: 2</p>
-                </div>
+        {/* LEJANT VE AÇIKLAMALAR (ALT KISIM) */}
+        <div className="mt-6 flex flex-wrap gap-4 text-[10px] md:text-xs justify-between print:mt-4">
+             <div className="border border-gray-400 p-2 rounded bg-white min-w-[200px]">
+                 <h4 className="font-bold border-b border-gray-300 mb-1 flex items-center gap-1"><Info size={12}/> Kısaltmalar</h4>
+                 <div className="grid grid-cols-2 gap-x-2">
+                    <p><strong>ÇGMS:</strong> Çalışılan Gün Sayısı</p> 
+                    <p><strong>TÇS:</strong> Top. Çalışma Saati</p>
+                    <p><strong>HS:</strong> Haftasonu (Cts+Pzr)</p> 
+                    <p><strong>16/8:</strong> Kısa Nöbetler</p>
+                 </div>
              </div>
 
              <div className="border border-gray-400 p-2 rounded bg-white min-w-[150px]">
-                 <h4 className="font-bold border-b border-gray-300 mb-1">Renk & Kodlar</h4>
+                 <h4 className="font-bold border-b border-gray-300 mb-1">Renk Kodları</h4>
                  <div className="flex items-center gap-2 mb-1"><div className="w-3 h-3 bg-blue-200 border border-black"></div> 24 Saat</div>
                  <div className="flex items-center gap-2 mb-1"><div className="w-3 h-3 bg-orange-200 border border-black"></div> 16 Saat</div>
                  <div className="flex items-center gap-2 mb-1"><div className="w-3 h-3 bg-green-200 border border-black"></div> 8 Saat</div>
@@ -681,7 +669,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans text-gray-800 relative">
-      {/* BİLDİRİM BALONU */}
       {notification && (
           <div className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-[100] px-6 py-3 rounded-full shadow-2xl text-white font-bold flex items-center gap-3 animate-bounce text-sm ${notification.type === 'error' ? 'bg-red-600' : 'bg-teal-600'}`}>
               {notification.type === 'error' ? <AlertTriangle size={20}/> : <Check size={20}/>}
@@ -689,7 +676,6 @@ export default function App() {
           </div>
       )}
 
-      {/* OTO PLANLAMA ONAY MODALI */}
       {showAutoFillConfirm && (
           <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[60] no-print p-4">
               <div className="bg-white p-6 rounded-lg shadow-2xl max-w-md w-full border-t-4 border-purple-600">
@@ -697,7 +683,7 @@ export default function App() {
                       <Sparkles className="text-purple-600" /> Otomatik Planlama
                   </h3>
                   <p className="text-gray-600 mb-6 font-medium">
-                      Bu işlem mevcut ayın tüm verilerini silip, kurallara uygun şekilde rastgele yeniden dağıtacaktır. Onaylıyor musunuz?
+                      Mevcut ayın tüm verilerini silip yeniden dağıtacak. Onaylıyor musunuz?
                   </p>
                   <div className="flex justify-end gap-3">
                       <button onClick={() => setShowAutoFillConfirm(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded font-bold">Vazgeç</button>
@@ -707,72 +693,48 @@ export default function App() {
           </div>
       )}
 
-      {/* HEADER (NAVBAR) */}
       <header className="bg-gradient-to-r from-teal-700 to-teal-900 text-white p-3 shadow-lg no-print sticky top-0 z-40">
         <div className="container mx-auto">
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
-                    <div className="bg-white text-teal-800 p-2 rounded-lg">
-                        <Calendar size={24} />
-                    </div>
+                    <div className="bg-white text-teal-800 p-2 rounded-lg"><Calendar size={24} /></div>
                     <div>
                         <h1 className="text-lg md:text-xl font-black tracking-tight">ACİL NÖBET</h1>
-                        <p className="text-teal-200 text-[10px] md:text-xs font-medium tracking-widest">PERSONEL PLANLAMA SİSTEMİ</p>
+                        <p className="text-teal-200 text-[10px] md:text-xs font-medium tracking-widest">PERSONEL PLANLAMA</p>
                     </div>
                 </div>
-
-                {/* Mobile Menu Toggle */}
                 <button className="md:hidden p-2 hover:bg-teal-600 rounded" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
                     {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
-
-                {/* Desktop Nav */}
                 <div className="hidden md:flex gap-3">
-                    <button onClick={() => setViewMode('calendar')} className={`px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all ${viewMode === 'calendar' ? 'bg-white text-teal-900 shadow' : 'hover:bg-teal-600 text-teal-100'}`}>
-                        <Calendar size={18} /> Takvim
-                    </button>
-                    <button onClick={() => setViewMode('matrix')} className={`px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all ${viewMode === 'matrix' ? 'bg-white text-teal-900 shadow' : 'hover:bg-teal-600 text-teal-100'}`}>
-                        <FileSpreadsheet size={18} /> Çizelge
-                    </button>
-                    <button onClick={() => setViewMode('staff')} className={`px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all ${viewMode === 'staff' ? 'bg-white text-teal-900 shadow' : 'hover:bg-teal-600 text-teal-100'}`}>
-                        <Users size={18} /> Personel
-                    </button>
+                    <button onClick={() => setViewMode('calendar')} className={`px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all ${viewMode === 'calendar' ? 'bg-white text-teal-900 shadow' : 'hover:bg-teal-600 text-teal-100'}`}><Calendar size={18} /> Takvim</button>
+                    <button onClick={() => setViewMode('matrix')} className={`px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all ${viewMode === 'matrix' ? 'bg-white text-teal-900 shadow' : 'hover:bg-teal-600 text-teal-100'}`}><FileSpreadsheet size={18} /> Çizelge</button>
+                    <button onClick={() => setViewMode('staff')} className={`px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all ${viewMode === 'staff' ? 'bg-white text-teal-900 shadow' : 'hover:bg-teal-600 text-teal-100'}`}><Users size={18} /> Personel</button>
                 </div>
             </div>
-
-            {/* Mobile Nav */}
             {isMobileMenuOpen && (
                 <div className="flex flex-col gap-2 mt-4 md:hidden pb-2 border-t border-teal-600 pt-2 animate-fadeIn">
                      <div className="flex items-center justify-between bg-teal-800 p-3 rounded-lg mb-2">
                         <button onClick={() => changeMonth(-1)} className="p-1 hover:bg-teal-600 rounded"><ChevronLeft /></button>
-                        <span className="font-bold text-lg">
-                        {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
-                        </span>
+                        <span className="font-bold text-lg">{MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}</span>
                         <button onClick={() => changeMonth(1)} className="p-1 hover:bg-teal-600 rounded"><ChevronRight /></button>
                     </div>
-                    <button onClick={() => { setViewMode('calendar'); setIsMobileMenuOpen(false); }} className={`p-3 rounded font-bold text-left ${viewMode === 'calendar' ? 'bg-white text-teal-900' : 'text-white'}`}>Takvim Görünümü</button>
-                    <button onClick={() => { setViewMode('matrix'); setIsMobileMenuOpen(false); }} className={`p-3 rounded font-bold text-left ${viewMode === 'matrix' ? 'bg-white text-teal-900' : 'text-white'}`}>Çizelge Görünümü</button>
-                    <button onClick={() => { setViewMode('staff'); setIsMobileMenuOpen(false); }} className={`p-3 rounded font-bold text-left ${viewMode === 'staff' ? 'bg-white text-teal-900' : 'text-white'}`}>Personel İşlemleri</button>
+                    <button onClick={() => { setViewMode('calendar'); setIsMobileMenuOpen(false); }} className={`p-3 rounded font-bold text-left ${viewMode === 'calendar' ? 'bg-white text-teal-900' : 'text-white'}`}>Takvim</button>
+                    <button onClick={() => { setViewMode('matrix'); setIsMobileMenuOpen(false); }} className={`p-3 rounded font-bold text-left ${viewMode === 'matrix' ? 'bg-white text-teal-900' : 'text-white'}`}>Çizelge</button>
+                    <button onClick={() => { setViewMode('staff'); setIsMobileMenuOpen(false); }} className={`p-3 rounded font-bold text-left ${viewMode === 'staff' ? 'bg-white text-teal-900' : 'text-white'}`}>Personel</button>
                 </div>
             )}
-
-            {/* Desktop Month Selector */}
             <div className="hidden md:flex items-center justify-center gap-4 mt-1 absolute left-1/2 top-4 transform -translate-x-1/2">
                  <div className="flex items-center gap-4 bg-teal-800/50 p-1 px-4 rounded-full text-sm border border-teal-600 backdrop-blur-sm">
                     <button onClick={() => changeMonth(-1)} className="hover:text-white text-teal-200 transition-colors"><ChevronLeft size={20}/></button>
-                    <span className="font-bold min-w-[120px] text-center text-white">
-                    {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
-                    </span>
+                    <span className="font-bold min-w-[120px] text-center text-white">{MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}</span>
                     <button onClick={() => changeMonth(1)} className="hover:text-white text-teal-200 transition-colors"><ChevronRight size={20}/></button>
                 </div>
             </div>
         </div>
       </header>
 
-      {/* MAIN CONTENT */}
       <main className="container mx-auto p-2 md:p-6 pb-20">
-        
-        {/* Toolbar */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 no-print bg-white p-3 rounded-lg shadow-sm border border-gray-200">
              <div className="w-full md:w-auto">
                 {viewMode === 'matrix' && (
@@ -786,7 +748,7 @@ export default function App() {
                     <button onClick={downloadAsJpg} className="bg-blue-600 text-white px-5 py-2.5 rounded hover:bg-blue-700 flex items-center justify-center gap-2 font-bold shadow transition-transform active:scale-95">
                         <ImageIcon size={18} /> JPG İNDİR
                     </button>
-                    <button onClick={printDocument} className="bg-red-600 text-white px-5 py-2.5 rounded hover:bg-red-700 flex items-center justify-center gap-2 font-bold shadow transition-transform active:scale-95" title="Açılan pencerede Hedef kısmını 'PDF Olarak Kaydet' seçin">
+                    <button onClick={printDocument} className="bg-red-600 text-white px-5 py-2.5 rounded hover:bg-red-700 flex items-center justify-center gap-2 font-bold shadow transition-transform active:scale-95" title="Hedef kısmını 'PDF Olarak Kaydet' seçin">
                         <FileText size={18} /> PDF KAYDET
                     </button>
                      <button onClick={printDocument} className="bg-gray-700 text-white px-5 py-2.5 rounded hover:bg-gray-800 flex items-center justify-center gap-2 font-bold shadow transition-transform active:scale-95">
@@ -796,54 +758,31 @@ export default function App() {
             )}
         </div>
 
-        {/* VIEW: CALENDAR */}
         {viewMode === 'calendar' && (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
                 {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map(day => (
                     <div key={day} className="text-center font-bold text-gray-400 py-2 text-xs uppercase tracking-wider">{day}</div>
                 ))}
-                
                 {Array.from({ length: (new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay() + 6) % 7 }).map((_, i) => (
                     <div key={`empty-${i}`} className="bg-transparent h-24 md:h-36"></div>
                 ))}
-
                 {getDaysInMonth(currentDate).map(day => {
                     const dateKey = formatDateKey(currentDate.getFullYear(), currentDate.getMonth(), day);
                     const dayAssignments = assignments[dateKey] || {};
                     const count = Object.keys(dayAssignments).length;
                     const isFull = count === 18;
                     const isWeekend = [0, 6].includes(new Date(currentDate.getFullYear(), currentDate.getMonth(), day - 1).getDay());
-
                     return (
-                        <div 
-                            key={day} 
-                            onClick={() => setSelectedDay(day)}
-                            className={`
-                                h-28 md:h-40 border-2 rounded-xl p-2 cursor-pointer transition-all hover:shadow-lg transform hover:-translate-y-1 relative overflow-hidden group
-                                ${isWeekend ? 'bg-red-50 border-red-100' : 'bg-white border-gray-200'}
-                                ${isFull ? 'border-green-400 ring-1 ring-green-100' : ''}
-                            `}
-                        >
+                        <div key={day} onClick={() => setSelectedDay(day)} className={`h-28 md:h-40 border-2 rounded-xl p-2 cursor-pointer transition-all hover:shadow-lg transform hover:-translate-y-1 relative overflow-hidden group ${isWeekend ? 'bg-red-50 border-red-100' : 'bg-white border-gray-200'} ${isFull ? 'border-green-400 ring-1 ring-green-100' : ''}`}>
                              <div className="flex justify-between items-start mb-2">
                                 <span className={`text-xl font-bold ${isWeekend ? 'text-red-500' : 'text-gray-700'}`}>{day}</span>
-                                {count > 0 && (
-                                    <span className={`text-[10px] px-2 py-1 rounded-full font-bold shadow-sm ${isFull ? 'bg-green-500 text-white' : 'bg-orange-100 text-orange-600'}`}>
-                                        {count}/18
-                                    </span>
-                                )}
+                                {count > 0 && <span className={`text-[10px] px-2 py-1 rounded-full font-bold shadow-sm ${isFull ? 'bg-green-500 text-white' : 'bg-orange-100 text-orange-600'}`}>{count}/18</span>}
                             </div>
-                            
                             <div className="space-y-1 text-xs text-gray-500">
-                                {count === 0 ? (
-                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <div className="bg-teal-100 text-teal-700 p-2 rounded-full"><Plus size={24}/></div>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <div className="flex justify-between items-center bg-blue-50 px-1 rounded"><span>24s:</span> <b className="text-blue-700">{Object.keys(dayAssignments).filter(k => DUTY_SLOTS.find(s=>s.id===k).type === '24').length}</b></div>
-                                        <div className="flex justify-between items-center bg-orange-50 px-1 rounded"><span>Kısa:</span> <b className="text-orange-700">{Object.keys(dayAssignments).filter(k => DUTY_SLOTS.find(s=>s.id===k).type !== '24').length}</b></div>
-                                    </>
-                                )}
+                                {count === 0 ? <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><div className="bg-teal-100 text-teal-700 p-2 rounded-full"><Plus size={24}/></div></div> : <>
+                                    <div className="flex justify-between items-center bg-blue-50 px-1 rounded"><span>24s:</span> <b className="text-blue-700">{Object.keys(dayAssignments).filter(k => DUTY_SLOTS.find(s=>s.id===k).type === '24').length}</b></div>
+                                    <div className="flex justify-between items-center bg-orange-50 px-1 rounded"><span>Kısa:</span> <b className="text-orange-700">{Object.keys(dayAssignments).filter(k => DUTY_SLOTS.find(s=>s.id===k).type !== '24').length}</b></div>
+                                </>}
                             </div>
                         </div>
                     );
@@ -851,66 +790,24 @@ export default function App() {
             </div>
         )}
 
-        {/* VIEW: MATRIX */}
         {viewMode === 'matrix' && renderMatrix()}
-
-        {/* VIEW: STAFF */}
-        {viewMode === 'staff' && (
-            <StaffManager 
-                staffList={staffList} 
-                setStaffList={setStaffList} 
-                showNotification={showNotification}
-            />
-        )}
-
+        {viewMode === 'staff' && <StaffManager staffList={staffList} setStaffList={setStaffList} showNotification={showNotification}/>}
       </main>
-
-      {/* MODALS */}
       {renderModal()}
-
-      {/* PRINT STYLES */}
       <style>{`
         @media print {
-            @page {
-                size: landscape;
-                margin: 5mm;
-            }
-            .no-print {
-                display: none !important;
-            }
-            body {
-                background: white;
-                color: black;
-            }
-            main {
-                margin: 0;
-                padding: 0;
-                width: 100%;
-            }
-            .overflow-x-auto {
-                overflow: visible !important;
-                box-shadow: none !important;
-            }
-            table {
-                width: 100% !important;
-                border-collapse: collapse;
-                font-size: 9px !important;
-            }
-            th, td {
-                border: 1px solid #000 !important;
-                padding: 2px !important;
-                color: black !important;
-            }
-            .sticky {
-                position: static !important;
-            }
-            /* Baskıda renkleri belirginleştir */
+            @page { size: landscape; margin: 5mm; }
+            .no-print { display: none !important; }
+            body { background: white; color: black; }
+            main { margin: 0; padding: 0; width: 100%; }
+            .overflow-x-auto { overflow: visible !important; box-shadow: none !important; }
+            table { width: 100% !important; border-collapse: collapse; font-size: 9px !important; }
+            th, td { border: 1px solid #000 !important; padding: 2px !important; color: black !important; }
+            .sticky { position: static !important; }
             .bg-blue-200 { background-color: #dbeafe !important; -webkit-print-color-adjust: exact; }
             .bg-orange-200 { background-color: #ffedd5 !important; -webkit-print-color-adjust: exact; }
             .bg-green-200 { background-color: #dcfce7 !important; -webkit-print-color-adjust: exact; }
             .bg-red-100 { background-color: #fee2e2 !important; -webkit-print-color-adjust: exact; }
-            
-            /* Sayfa Kesilmelerini Yönet */
             tr { page-break-inside: avoid; }
         }
       `}</style>
